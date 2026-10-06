@@ -10,4 +10,4 @@
 - [x] P-T08: instalación, lint, tipos, build y 94 pruebas pasan; cobertura supera 80% en las cuatro métricas.
 - [x] P-T09: migración repetida, seed cargado dos veces y build HTTP real verificados; resultados en el overview.
 - [x] P-T10: registrar este incremento como tercer commit local verificado.
-- [ ] P-T11: revisar overview con el usuario antes del siguiente incremento.
+- [x] P-T11: overview presentado; el usuario autorizó commit 4 y push el 2026-10-06.

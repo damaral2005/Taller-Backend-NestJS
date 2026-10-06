@@ -4,6 +4,9 @@ import { InitialInventory1791244800000 } from './migrations/1791244800000-initia
 import { Product } from '../products/entities/product.entity';
 import { StockMovement } from '../movements/entities/stock-movement.entity';
 import { User } from '../users/entities/user.entity';
+import { AuthProof } from '../auth/entities/auth-proof.entity';
+import { Session } from '../auth/entities/session.entity';
+import { Authentication1791244801000 } from './migrations/1791244801000-authentication';
 
 export function databaseOptions(
   config: DatabaseEnvironment,
@@ -17,8 +20,8 @@ export function databaseOptions(
     password: config.DB_PASSWORD,
     schema: config.DB_SCHEMA,
     ssl: config.DB_SSL ? { rejectUnauthorized: true } : false,
-    entities: [User, Product, StockMovement],
-    migrations: [InitialInventory1791244800000],
+    entities: [User, Product, StockMovement, AuthProof, Session],
+    migrations: [InitialInventory1791244800000, Authentication1791244801000],
     migrationsTableName: 'schema_migrations',
     migrationsTransactionMode: 'all',
     synchronize: false,

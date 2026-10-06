@@ -24,7 +24,7 @@ Fecha: 2026-10-06. Una marca completada corresponde a trabajo verificable, no a 
 - [x] C2-06: registrar el segundo commit local.
 - [x] C2-07: el usuario autorizó avanzar al commit 3 tras el overview, el 2026-10-06.
 
-## Commit 3 — implementado; pendiente de revisión conjunta
+## Commit 3 — cerrado
 
 - [x] C3-01: usuario autorizó continuar; especificación de persistencia/seed preparada.
 - [x] C3-02: esquema, constraints, saldo almacenado y claves de seed definidos en el incremento 003.
@@ -33,7 +33,17 @@ Fecha: 2026-10-06. Una marca completada corresponde a trabajo verificable, no a 
 - [x] C3-05: migración, integridad, rollback, persistencia e idempotencia/concurrencia pasan en PostgreSQL; CI extendido.
 - [x] C3-06: README, SDD y overview actualizados con resultados reales.
 - [x] C3-07: registrar el tercer commit local.
-- [ ] C3-08: revisar overview con el usuario antes de continuar.
+- [x] C3-08: overview presentado; el usuario autorizó commit 4 y push el 2026-10-06.
+
+## Commit 4 — autenticación
+
+- [x] C4-01: usuario autoriza incremento y publicación; contratos y políticas en `specs/004-authentication` antes del código.
+- [x] C4-02: JWT, TOTP cifrado, migración incremental y script de enrolamiento implementados.
+- [x] C4-03: sesiones revocables, identidad, límites persistidos y guards reutilizables implementados.
+- [x] C4-04: 126 pruebas, cobertura y checks finales verificados; evidencia en `docs/commits/004.md`.
+- [x] C4-05: documentación actualizada; registrar este incremento como cuarto commit.
+- [ ] C4-06: publicación posterior al commit; resultado de push/CI informado al cerrar y en el próximo incremento.
+- [ ] C4-07: overview y recomendación al grupo presentados; revisión antes del siguiente incremento.
 
 ## Entrega completa — pendiente después de los tres commits
 

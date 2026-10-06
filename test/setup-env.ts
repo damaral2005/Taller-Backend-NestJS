@@ -8,3 +8,5 @@ process.env.DB_PASSWORD =
   process.env.TEST_DB_PASSWORD ?? 'inventory_test_local';
 process.env.DB_SCHEMA = 'public';
 process.env.DB_SSL = 'false';
+process.env.JWT_SECRET = 'unit-integration-test-jwt-secret-32-bytes';
+process.env.TOTP_ENCRYPTION_KEY = 'a1'.repeat(32);

@@ -1,6 +1,6 @@
 # Especificación 001 — API de inventario
 
-Fecha: 2026-10-06. Estado: bootstrap, persistencia y seed implementados y verificados en los incrementos 002/003. Rutas de inventario, autenticación y permisos siguen pendientes.
+Fecha: 2026-10-06. Estado: bootstrap, persistencia, seed y autenticación implementados y verificados en los incrementos 002/003/004. Administración de usuarios y rutas de inventario siguen pendientes.
 
 ## Objetivo y alcance
 
@@ -33,24 +33,26 @@ No se incluyen inicialmente ventas, facturación, proveedores, múltiples bodega
 - RN-06: una segunda ejecución del seed conserva los usuarios y movimientos existentes, no reinicia contraseñas ni borra datos de negocio.
 - RN-07: los roles válidos son `admin` y `operador`; se validan en el servidor. Ninguna petición pública puede conceder privilegios.
 
-## Autenticación y autorización previstas
+## Autenticación y autorización
+
+El incremento 004 implementa enrolamiento privado inicial, TOTP, desafíos, JWT con sesión, identidad, logout revocable y guards reutilizables. Políticas exactas en [la especificación 004](../004-authentication/spec.md). Administración de usuarios/roles y recuperación de 2FA permanecen pendientes.
 
 - Usuarios creados por admin; no habrá registro público en el alcance inicial.
 - Contraseñas almacenadas mediante hash. Contraseñas, hashes, semillas TOTP y secretos no aparecen en respuestas ordinarias ni en logs.
-- Segundo factor propuesto: TOTP mediante aplicación autenticadora; su librería, ventana temporal y parámetros se concretarán en la especificación de autenticación.
+- Segundo factor: TOTP mediante aplicación autenticadora; librería, ventana temporal y parámetros definidos en la especificación 004.
 - El alta entrega una credencial limitada de enrolamiento, con vencimiento y de un solo uso. Solo permite configurar y confirmar TOTP; no permite acceder a inventario ni administrar usuarios.
 - `login` valida las credenciales y devuelve un desafío temporal de 2FA; el desafío no es un JWT de acceso. `verify-2fa` valida el código, consume el desafío y crea una sesión con JWT de acceso.
 - Cada JWT de acceso identifica usuario y sesión; las rutas protegidas verifican expiración, sesión activa y rol vigente. Cambiar un rol afecta los permisos de las siguientes peticiones.
 - `logout` revoca la sesión en PostgreSQL; su JWT se rechaza en las siguientes peticiones. No basta con borrar el token en Postman.
 - Los secretos TOTP se almacenan cifrados con una clave externa a la base de datos. El enrolamiento del admin inicial se documentará sin versionar secretos reales.
 - Se limitarán intentos de login y de 2FA; desafíos y códigos consumidos no pueden reutilizarse para crear otra sesión.
-- Expiraciones, límites, recuperación de 2FA y política para el último admin son decisiones pendientes que deberán resolverse antes de implementar autenticación.
+- Expiraciones y límites están definidos e implementados en 004. Recuperación de 2FA y política para el último admin siguen pendientes antes de ampliar mantenimiento/administración.
 
 ## Contratos HTTP previstos
 
 Prefijo propuesto: `/api/v1`. Son contratos iniciales; DTOs completos, ejemplos de respuesta y límites de paginación se precisarán en la especificación del incremento que los implemente.
 
-Actualmente solo `GET /api/v1/health` está disponible por HTTP. Persistencia y seed se verifican con scripts y pruebas PostgreSQL según el incremento 003; las demás rutas de la tabla siguen previstas.
+Actualmente `GET /api/v1/health` y las seis rutas `/auth/*` están disponibles. Persistencia y seed se verifican con scripts y pruebas PostgreSQL según 003; administración e inventario siguen previstos. El primer enrolamiento se emite por script privado según 004.
 
 | Método y ruta                | Acceso                          | Parámetros principales                    | Resultado esperado                                                                   |
 | ---------------------------- | ------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------ |
@@ -76,16 +78,16 @@ Las rutas de la tabla son relativas al prefijo. `400` corresponde a parámetros 
 
 ## Trazabilidad de la rúbrica
 
-| ID   | Requisito                 | Peso | Criterio de aceptación y evidencia final                                                                                                                | Estado                                                                                 |
-| ---- | ------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| R-01 | Seed                      | 5%   | Script documentado crea `admin`, al menos un operador, productos y movimientos válidos; dos ejecuciones no duplican ni borran datos.                    | Implementado y verificado en commit 3                                                  |
-| R-02 | Autenticación JWT y 2FA   | 5%   | Login exige ambos factores; JWT protege rutas; logout revoca acceso; pruebas de fallos, expiración y reutilización.                                     | Pendiente                                                                              |
-| R-03 | Autorización              | 5%   | Admin y operador tienen permisos distintos; solo admin asigna roles; pruebas HTTP de `401`/`403` y cambio de rol.                                       | Roles persistidos; permisos por ruta pendientes                                        |
-| R-04 | Pruebas                   | 25%  | Jest y Supertest con BD de prueba PostgreSQL real; cobertura global mínima del 80% en líneas, sentencias, funciones y ramas, verificada en CI.          | 94 pruebas y cobertura local verificada; CI remoto y nuevas funcionalidades pendientes |
-| R-05 | Persistencia              | 10%  | TypeORM guarda datos en PostgreSQL; migraciones reproducibles; constraints y transacciones probadas; datos sobreviven al reinicio.                      | Implementado y verificado en commit 3                                                  |
-| R-06 | Funcionalidades y Postman | 25%  | Catálogo, saldos y movimientos cumplen RN-01 a RN-07; colección JSON y entorno permiten recorrer casos exitosos y errores.                              | Pendiente                                                                              |
-| R-07 | Informe                   | 10%  | Documenta cada endpoint, parámetros, respuestas, autenticación, autorización, persistencia y ejecución de pruebas con resultados reales.                | Pendiente                                                                              |
-| R-08 | Despliegue                | 15%  | API accesible en nube; pipeline ejecuta checks, pruebas y despliegue automatizado con migraciones; se aporta URL y evidencia de una ejecución correcta. | CI con PostgreSQL preparado; despliegue pendiente                                      |
+| ID   | Requisito                 | Peso | Criterio de aceptación y evidencia final                                                                                                                | Estado                                                                                     |
+| ---- | ------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| R-01 | Seed                      | 5%   | Script documentado crea `admin`, al menos un operador, productos y movimientos válidos; dos ejecuciones no duplican ni borran datos.                    | Implementado y verificado en commit 3                                                      |
+| R-02 | Autenticación JWT y 2FA   | 5%   | Login exige ambos factores; JWT protege rutas; logout revoca acceso; pruebas de fallos, expiración y reutilización.                                     | Implementado y verificado en commit 4; recuperación 2FA pendiente                          |
+| R-03 | Autorización              | 5%   | Admin y operador tienen permisos distintos; solo admin asigna roles; pruebas HTTP de `401`/`403` y cambio de rol.                                       | Roles y guards verificados; administración/permisos de dominio pendientes                  |
+| R-04 | Pruebas                   | 25%  | Jest y Supertest con BD de prueba PostgreSQL real; cobertura global mínima del 80% en líneas, sentencias, funciones y ramas, verificada en CI.          | 126 pruebas y cobertura local verificada; CI remoto y nuevas funcionalidades por verificar |
+| R-05 | Persistencia              | 10%  | TypeORM guarda datos en PostgreSQL; migraciones reproducibles; constraints y transacciones probadas; datos sobreviven al reinicio.                      | Implementado y verificado en commit 3                                                      |
+| R-06 | Funcionalidades y Postman | 25%  | Catálogo, saldos y movimientos cumplen RN-01 a RN-07; colección JSON y entorno permiten recorrer casos exitosos y errores.                              | Pendiente                                                                                  |
+| R-07 | Informe                   | 10%  | Documenta cada endpoint, parámetros, respuestas, autenticación, autorización, persistencia y ejecución de pruebas con resultados reales.                | Pendiente                                                                                  |
+| R-08 | Despliegue                | 15%  | API accesible en nube; pipeline ejecuta checks, pruebas y despliegue automatizado con migraciones; se aporta URL y evidencia de una ejecución correcta. | CI con PostgreSQL preparado; despliegue pendiente                                          |
 
 Entrega transversal: README reproducible, URL del repositorio, URL de API, informe para Intu y commits que permitan verificar la participación del grupo. La suma de pesos es 100%.
 
@@ -104,4 +106,4 @@ Entrega transversal: README reproducible, URL del repositorio, URL de API, infor
 11. Reiniciar la API → persisten productos, saldos, movimientos y revocaciones.
 12. CI con cobertura por debajo del umbral o una prueba fallida → no despliega.
 
-El commit 1 verifica documentación; el commit 2 verifica base, health y validación. El commit 3 verifica seed idempotente, constraints, persistencia, rollback y concurrencia del seed. Las salidas HTTP concurrentes, JWT, 2FA, permisos y despliegue siguen pendientes.
+El commit 1 verifica documentación; el commit 2 verifica base, health y validación. El commit 3 verifica seed, constraints, persistencia, rollback y concurrencia del seed. El commit 4 verifica JWT, TOTP, intentos, concurrencia 2FA, revocación y guards con rol vigente. Salidas de inventario, administración y permisos de dominio, recuperación 2FA y despliegue siguen pendientes.

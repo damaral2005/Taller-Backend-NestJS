@@ -6,9 +6,9 @@ Repositorio: [Taller-Backend-NestJS](https://github.com/damaral2005/Taller-Backe
 
 ## Estado actual
 
-Los commits 1 y 2 establecen el SDD y la base NestJS. El commit 3 incorpora PostgreSQL, entidades, migración inicial, seed transaccional y pruebas reales de persistencia. **Todavía no hay rutas de autenticación, administración de usuarios, catálogo o movimientos, ni despliegue.**
+Los commits 1 y 2 establecen el SDD y la base NestJS. El commit 3 incorpora PostgreSQL y seed. El commit 4 añade enrolamiento TOTP, login con JWT, sesiones revocables, identidad y guards reutilizables de autenticación/roles. **Administración de usuarios, catálogo, movimientos y despliegue siguen pendientes.**
 
-Solo health está disponible. Los demás contratos de la especificación 001 representan funcionalidades futuras.
+Health y las seis rutas de autenticación están disponibles. Los contratos de usuarios e inventario de la especificación 001 representan funcionalidades futuras.
 
 La carpeta `2026-2-nestjs-postgres` se utiliza como referencia del curso. El desarrollo propio se realiza en `Taller Backend – NestJS`; no se modifica el ejemplo ni se copia su historial.
 
@@ -23,6 +23,9 @@ La carpeta `2026-2-nestjs-postgres` se utiliza como referencia del curso. El des
 - [Overview y verificación del commit 2](docs/commits/002.md).
 - [Especificación de persistencia y seed](specs/003-persistence/spec.md), [plan](specs/003-persistence/plan.md) y [tareas](specs/003-persistence/tasks.md).
 - [Overview y verificación del commit 3](docs/commits/003.md).
+- [Especificación de autenticación](specs/004-authentication/spec.md), [plan](specs/004-authentication/plan.md) y [tareas](specs/004-authentication/tasks.md).
+- [Overview y verificación del commit 4](docs/commits/004.md).
+- [Guía para colaborar con Spec-Driven Design](docs/CONTRIBUTING.md).
 
 ## Flujo de trabajo por commit
 
@@ -35,15 +38,16 @@ La carpeta `2026-2-nestjs-postgres` se utiliza como referencia del curso. El des
 
 Los cambios de alcance se registran; una tarea pendiente no se presenta como completada. Los commits deben reflejar las contribuciones reales de cada integrante, sin atribuir trabajo a otras personas.
 
-## Primeros tres commits
+## Incrementos
 
 | Commit | Alcance                                                            | Estado                                                        |
 | ------ | ------------------------------------------------------------------ | ------------------------------------------------------------- |
 | 1      | Especificación de inventario, rúbrica y flujo de trabajo           | Cerrado; usuario autorizó avanzar                             |
 | 2      | Base NestJS, configuración, validación, health y pruebas iniciales | Ver resultados y estado en el [overview](docs/commits/002.md) |
 | 3      | PostgreSQL, migración inicial, seed y pruebas de persistencia      | Ver resultados y estado en el [overview](docs/commits/003.md) |
+| 4      | JWT, enrolamiento TOTP, sesiones revocables y guards               | Ver resultados y estado en el [overview](docs/commits/004.md) |
 
-JWT con 2FA, permisos, operaciones completas de inventario, colección Postman, informe y despliegue se desarrollarán en incrementos posteriores. Estos tres commits iniciales no completan la entrega.
+Administración de usuarios/permisos, inventario, colección Postman, informe y despliegue se desarrollarán en incrementos posteriores. Estos incrementos no completan la entrega.
 
 ## Requisitos y ejecución
 
@@ -65,17 +69,27 @@ Copy-Item .env.example .env
 
 En Bash se puede usar `cp .env.example .env`. El archivo `.env` no se versiona. Si ya existe, incorpora las nuevas variables sin reemplazar tus valores. Las credenciales del ejemplo son solo de demostración local; establece valores propios en cualquier entorno compartido.
 
-| Variable      | Por defecto         | Regla                                                                |
-| ------------- | ------------------- | -------------------------------------------------------------------- |
-| `NODE_ENV`    | `development`       | `development`, `test` o `production`                                 |
-| `PORT`        | `3000`              | Entero entre 1 y 65535, escrito solo con dígitos                     |
-| `DB_HOST`     | `127.0.0.1`         | Host de PostgreSQL                                                   |
-| `DB_PORT`     | `5433`              | Entero entre 1 y 65535                                               |
-| `DB_NAME`     | `inventory`         | Identificador en minúsculas; en test debe terminar en `_test`        |
-| `DB_USERNAME` | `inventory`         | Usuario de PostgreSQL                                                |
-| `DB_PASSWORD` | Sin valor en código | Obligatoria; `.env.example` contiene una clave de demostración local |
-| `DB_SCHEMA`   | `public`            | Identificador en minúsculas, máximo 63 caracteres                    |
-| `DB_SSL`      | `false`             | `true` o `false`; con `true` se verifica el certificado              |
+Antes del primer arranque, genera las dos claves de autenticación independientes en `.env` (comando válido en PowerShell y Bash):
+
+```bash
+node -e "const fs = require('node:fs'), c = require('node:crypto'); fs.appendFileSync('.env', '\nJWT_SECRET=' + c.randomBytes(32).toString('hex') + '\nTOTP_ENCRYPTION_KEY=' + c.randomBytes(32).toString('hex') + '\n');"
+```
+
+Ejecuta ese comando una sola vez al configurar tu entorno. Conserva las claves: cambiarlas invalida JWT o impide descifrar factores ya enrolados; la rotación requiere un procedimiento que aún no se implementa. En la instalación local de este trabajo ya se generaron, sin publicarlas.
+
+| Variable              | Por defecto         | Regla                                                                |
+| --------------------- | ------------------- | -------------------------------------------------------------------- |
+| `NODE_ENV`            | `development`       | `development`, `test` o `production`                                 |
+| `PORT`                | `3000`              | Entero entre 1 y 65535, escrito solo con dígitos                     |
+| `DB_HOST`             | `127.0.0.1`         | Host de PostgreSQL                                                   |
+| `DB_PORT`             | `5433`              | Entero entre 1 y 65535                                               |
+| `DB_NAME`             | `inventory`         | Identificador en minúsculas; en test debe terminar en `_test`        |
+| `DB_USERNAME`         | `inventory`         | Usuario de PostgreSQL                                                |
+| `DB_PASSWORD`         | Sin valor en código | Obligatoria; `.env.example` contiene una clave de demostración local |
+| `DB_SCHEMA`           | `public`            | Identificador en minúsculas, máximo 63 caracteres                    |
+| `DB_SSL`              | `false`             | `true` o `false`; con `true` se verifica el certificado              |
+| `JWT_SECRET`          | Sin valor           | Al menos 32 bytes; independiente de la clave TOTP                    |
+| `TOTP_ENCRYPTION_KEY` | Sin valor           | 64 caracteres hexadecimales: clave AES-256-GCM                       |
 
 Preparar la base y cargar los registros iniciales:
 
@@ -87,11 +101,11 @@ npm run seed
 
 Los comandos de migración y seed compilan el proyecto antes de ejecutarse. El seed requiere `SEED_ADMIN_PASSWORD` y `SEED_OPERATOR_PASSWORD` de 12 a 128 caracteres, declaradas en `.env` o en el proceso. Crea `admin`, `operador`, tres productos y entradas iniciales con saldos 20, 30 y 10. Las contraseñas se guardan con scrypt y salt aleatoria.
 
-Repetir `npm run seed` conserva contraseñas, roles, catálogo, saldos e historial existentes y no aplica de nuevo las entradas ya identificadas. Si existe un producto activo sin su entrada inicial, se añade esa entrada a su saldo previo; si está inactivo, se rechaza la carga completa. Todo el seed es una transacción. Todavía no puede iniciarse sesión: JWT y enrolamiento 2FA se implementarán después.
+Repetir `npm run seed` conserva contraseñas, roles, catálogo, saldos e historial existentes y no aplica de nuevo las entradas ya identificadas. Si existe un producto activo sin su entrada inicial, se añade esa entrada a su saldo previo; si está inactivo, se rechaza la carga completa. Todo el seed es una transacción. Para iniciar sesión, primero enrola el segundo factor según el recorrido siguiente.
 
 Desarrollo tiene un volumen persistente en Docker. `docker compose stop postgres` detiene ese servicio conservando los datos, y `npm run db:up` lo vuelve a iniciar. No es necesario borrar volúmenes para repetir el seed.
 
-`npm run migration:revert` revierte la última migración. La reversión inicial **elimina las tablas y sus datos**: se utiliza solo sobre bases descartables. La aplicación no ejecuta migraciones ni seed al arrancar; `synchronize` y `dropSchema` están desactivados.
+`npm run migration:revert` revierte la última migración: la de autenticación elimina sesiones y factores; la inicial elimina inventario/usuarios. Ambas reversiones **eliminan datos** y se prueban solo sobre bases descartables. La aplicación no ejecuta migraciones ni seed al arrancar; `synchronize` y `dropSchema` están desactivados.
 
 Las variables del proceso prevalecen sobre `.env`. Cuando `NODE_ENV=test`, no se carga `.env`. Una configuración inválida impide arrancar y el mensaje indica qué variable corregir sin mostrar su valor.
 
@@ -119,6 +133,49 @@ Para ejecutar el build:
 npm run build
 npm run start:prod
 ```
+
+## Autenticación: recorrido manual
+
+Con migraciones aplicadas y API iniciada, emite en otra terminal una credencial privada para un usuario del seed:
+
+```bash
+npm run auth:enroll -- admin
+```
+
+El script devuelve `{enrollmentToken, expiresIn:900}`. No permite resetear un usuario que ya tiene TOTP; una nueva emisión invalida el enrolamiento anterior. Esa credencial solo sirve para setup/confirmación, nunca para acceder a inventario. No publiques su salida ni el secreto del setup.
+
+Ejemplo PowerShell (sustituye los dos placeholders con tus valores locales):
+
+```powershell
+$base = 'http://localhost:3000/api/v1'
+$enrollment = '<enrollmentToken_del_script>'
+$setup = Invoke-RestMethod -Method Post "$base/auth/2fa/setup" -ContentType 'application/json' -Body (@{ enrollmentToken = $enrollment } | ConvertTo-Json)
+# Añade $setup.secret manualmente en tu aplicación autenticadora: TOTP, SHA1, 6 dígitos, 30 segundos.
+# $setup.uri también permite importar el factor en una aplicación compatible.
+$confirmCode = Read-Host 'Código de la aplicación autenticadora'
+Invoke-RestMethod -Method Post "$base/auth/2fa/confirm" -ContentType 'application/json' -Body (@{ enrollmentToken = $enrollment; code = $confirmCode } | ConvertTo-Json)
+$challenge = Invoke-RestMethod -Method Post "$base/auth/login" -ContentType 'application/json' -Body (@{ username = 'admin'; password = '<SEED_ADMIN_PASSWORD>' } | ConvertTo-Json)
+# Espera el siguiente código: el utilizado para confirmar ya está consumido.
+$loginCode = Read-Host 'Nuevo código del autenticador'
+$session = Invoke-RestMethod -Method Post "$base/auth/verify-2fa" -ContentType 'application/json' -Body (@{ challengeToken = $challenge.challengeToken; code = $loginCode } | ConvertTo-Json)
+$headers = @{ Authorization = "Bearer $($session.accessToken)" }
+Invoke-RestMethod "$base/auth/me" -Headers $headers
+Invoke-RestMethod -Method Post "$base/auth/logout" -Headers $headers
+# Repetir /auth/me con los mismos headers debe fallar con 401.
+```
+
+| Ruta                     | Entrada                                | Resultado                                                   |
+| ------------------------ | -------------------------------------- | ----------------------------------------------------------- |
+| `POST /auth/2fa/setup`   | `enrollmentToken`                      | `201`: secreto/URI TOTP exclusivamente para enrolamiento    |
+| `POST /auth/2fa/confirm` | `enrollmentToken`, `code` de 6 dígitos | `200`: `{enabled:true}`                                     |
+| `POST /auth/login`       | `username`, `password`                 | `200`: desafío de 5 minutos; todavía no hay JWT             |
+| `POST /auth/verify-2fa`  | `challengeToken`, `code`               | `200`: JWT Bearer de 15 minutos                             |
+| `GET /auth/me`           | Bearer JWT                             | `200`: `{id,username,role}` sin secretos                    |
+| `POST /auth/logout`      | Bearer JWT                             | `204`: sesión revocada; después el mismo JWT devuelve `401` |
+
+Las rutas son relativas a `/api/v1`. Se rechazan campos adicionales con `400`; credenciales/códigos/pruebas inválidos, consumidos o vencidos con `401`; exceso de peticiones con `429`. Username canónico y contraseña de 12–128 caracteres. Cinco fallos de contraseña bloquean login 15 minutos; cinco fallos TOTP por cuenta bloquean 2FA y desafíos nuevos 15 minutos. El límite por IP/ruta es 20 peticiones/minuto en memoria por proceso. TOTP admite ±1 paso y cada contador puede consumirse una sola vez por usuario.
+
+Los secretos se cifran con AES-256-GCM, las credenciales temporales solo se guardan como digest SHA256 y todas las respuestas auth llevan `Cache-Control: no-store`. El guard comprueba JWT y sesión en PostgreSQL y toma el rol vigente de BD. Los guards de roles están listos y probados; las rutas de administración que los utilizarán siguen pendientes. No hay recuperación de 2FA, refresh tokens ni rotación de claves automatizada; no se puede saltar 2FA usando solo la contraseña.
 
 ## Pruebas y verificaciones
 
@@ -149,7 +206,7 @@ La cobertura incluye todos los archivos de `src` salvo tests y se exige en líne
 
 Las pruebas HTTP cierran sus servidores al terminar y usan puertos efímeros para verificar el listener. El controlador de validación existe únicamente en `test/` y no se distribuye con la API.
 
-Los scripts ya habilitan las VM de módulos de Node para que Jest cargue las dependencias ESM de NestJS 12; no es necesario añadir flags manualmente. En el commit 3 pasan **94 pruebas**, con **97,36% de cobertura de líneas** y las cuatro métricas por encima del 80%. El [overview](docs/commits/003.md) registra resultados y límites.
+Los scripts ya habilitan las VM de módulos de Node para que Jest cargue las dependencias ESM de NestJS 12; no es necesario añadir flags manualmente. En el commit 4 pasan **126 pruebas en 11 suites**, con **98,51% de cobertura de líneas** y las cuatro métricas por encima del 80%. El [overview](docs/commits/004.md) registra resultados y límites.
 
 ## Integración continua
 
@@ -166,6 +223,7 @@ src/
   products/entities/      # Producto y stock
   movements/entities/     # Historial con usuario y producto
   seed/                   # Credenciales, hash y carga transaccional
+  auth/                   # Enrolamiento, TOTP, JWT, sesiones y guards
   health/                 # Endpoint público de salud
   app.module.ts           # Configuración global y módulos
   configure-app.ts        # Prefijo, pipe y hooks compartidos
@@ -177,7 +235,7 @@ docs/                     # Decisiones y overview por commit
 .github/workflows/ci.yml   # Checks automatizados
 ```
 
-La siguiente fase implementará autenticación y 2FA con su propia especificación antes del código.
+La siguiente fase implementará administración de usuarios y roles con su propia especificación antes del código. Consulta la [guía del grupo](docs/CONTRIBUTING.md) para preparar tu incremento.
 
 ## Entrega final pendiente
 

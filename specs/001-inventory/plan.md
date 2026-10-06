@@ -1,6 +1,6 @@
 # Plan 001 — implementación incremental
 
-Fecha: 2026-10-06. Estado: commits 1 y 2 cerrados; commit 3 implementado y verificado según `specs/003-persistence`, pendiente de revisión conjunta.
+Fecha: 2026-10-06. Estado: commits 1, 2 y 3 cerrados; el usuario autorizó commit 4 de autenticación y push de los incrementos.
 
 ## Arquitectura prevista
 
@@ -60,11 +60,19 @@ Aceptación: migración levanta esquema desde cero; seed se ejecuta dos veces si
 
 El commit 3 no implementa todavía las rutas completas de inventario ni demuestra el escenario de salidas HTTP concurrentes; esa evidencia corresponde al incremento de movimientos.
 
+## Commit 4 — autenticación JWT y TOTP
+
+Mensaje: `feat: add JWT authentication with TOTP and revocable sessions`.
+
+Contratos, políticas, arquitectura y tareas previos al código en `specs/004-authentication/{spec,plan,tasks}.md`. Enrolamiento privado, setup/confirmación, desafíos limitados, códigos sin replay, JWT de 15 minutos, sesión persistida, identidad y logout revocable. Secretos TOTP cifrados con AES-256-GCM; límites de cuenta y pruebas persistidos. Guards JWT y roles reutilizables. Resultados y límites en `docs/commits/004.md`.
+
+Aceptación: flujo completo y errores con Supertest/PostgreSQL real; concurrencia, expiración, intentos, revocación y rol vigente; cobertura global >=80% sin excluir código. Crear commit y verificar push autorizado. Administración de usuarios, recuperación 2FA y dominio permanecen para los siguientes incrementos.
+
 ## Incrementos posteriores
 
 | Incremento     | Alcance y evidencias                                                                                                                  |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Autenticación  | Resolver políticas pendientes, enrolamiento TOTP, login con desafío, JWT, sesiones, logout, límites y pruebas.                        |
+| Recuperación   | Definir y probar recuperación de 2FA con identidad verificada, sin bypass por contraseña.                                             |
 | Administración | Crear/listar usuarios, asignación de roles, guards y pruebas de permisos vigentes.                                                    |
 | Catálogo       | Productos, validaciones, filtros, paginación, SKU único y desactivación.                                                              |
 | Movimientos    | Entradas/salidas transaccionales, consulta del historial y pruebas de concurrencia y rollback.                                        |

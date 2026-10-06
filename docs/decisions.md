@@ -8,7 +8,7 @@
 | D-04 | Cerrar y revisar un commit antes de implementar el siguiente.                         | Confirmada por usuario                           | Permite revisar cambios y mantener SDD actualizado.                                                     |
 | D-05 | Productos, saldo y movimientos en un inventario; cantidades enteras.                  | Alcance inicial aceptado al avanzar              | Usuario autorizó el commit 2 tras el overview, sin cambios de alcance.                                  |
 | D-06 | Roles `admin` y `operador`, usuarios creados por admin.                               | Alcance inicial aceptado al avanzar              | Cubre administración de roles y permisos distintos sin registro público.                                |
-| D-07 | TOTP como 2FA y sesiones persistidas para revocar JWT.                                | Propuesta técnica                                | Cumple dos factores y logout verificable en el servidor.                                                |
+| D-07 | TOTP como 2FA y sesiones persistidas para revocar JWT.                                | Implementada y verificada en commit 4            | Cumple dos factores y logout verificable en el servidor.                                                |
 | D-08 | PostgreSQL, TypeORM, migraciones y seed por script idempotente.                       | Plan técnico inicial                             | Satisface persistencia y evita una ruta pública de carga de datos.                                      |
 | D-09 | Primeros commits: SDD, base NestJS, persistencia/seed.                                | Segundo commit autorizado                        | Cada cambio se puede validar por separado; seguridad y dominio siguen después.                          |
 | D-10 | Node 24, npm 11 y TypeScript estricto con CommonJS.                                   | Resuelta para commit 2                           | Coincide con el runtime local y permite usar Jest según la rúbrica.                                     |
@@ -29,11 +29,20 @@ Decisiones del commit 3:
 
 El código propio se compila a CommonJS; NestJS 12 distribuye dependencias ESM. Los scripts de pruebas habilitan las VM de módulos de Node para que Jest pueda cargarlas, según su documentación oficial. No se simula Nest ni se excluyen estas pruebas para resolver la compatibilidad.
 
-| ID   | Decisión pendiente                                                                                                           | Resolver antes de                          |
-| ---- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| P-04 | Librería TOTP, parámetros, vigencia JWT/desafíos, límites de intentos, enrolamiento/recuperación y política de último admin. | Implementar autenticación y administración |
-| P-05 | Campos exactos de DTOs, paginación y formato uniforme de errores.                                                            | Implementar cada ruta                      |
-| P-06 | Integrantes y autoría de contribuciones reales.                                                                              | Revisar participación y preparar entrega   |
-| P-07 | Proveedor de nube, base de datos, credenciales y estrategia de migración/despliegue.                                         | Implementar despliegue                     |
+| ID   | Decisión pendiente                                                                                                                    | Resolver antes de                        |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| P-04 | Recuperación 2FA, rotación de claves y política de último admin; TOTP, expiraciones, límites y enrolamiento inicial resueltos en 004. | Ampliar mantenimiento y administración   |
+| P-05 | Campos exactos de DTOs, paginación y formato uniforme de errores.                                                                     | Implementar cada ruta                    |
+| P-06 | Integrantes y autoría de contribuciones reales.                                                                                       | Revisar participación y preparar entrega |
+| P-07 | Proveedor de nube, base de datos, credenciales y estrategia de migración/despliegue.                                                  | Implementar despliegue                   |
 
 El ejemplo puede orientar la estructura modular y los DTOs; no demuestra cumplimiento de JWT, 2FA, roles, cobertura ni despliegue. No se reutilizan passwords, secretos o datos personales de otros entornos.
+
+Decisiones del commit 4:
+
+- D-20: `@nestjs/jwt` 12.0.2, OTPAuth 9.5.2 y Throttler 6.7.1, compatibles y fijados. JWT HS256 con issuer/audience y sesión de 15 minutos, sin refresh.
+- D-21: TOTP SHA1/6 dígitos/30 segundos y ventana ±1; cifrado AES-256-GCM con clave separada, AAD por propósito/usuario y contador persistido sin replay.
+- D-22: enrolamiento inicial emitido por script privado, 15 minutos; desafío 5 minutos. Tokens aleatorios de 32 bytes guardados como digest; bloqueos transaccionales serializan verificación y consumo.
+- D-23: cinco fallos de contraseña o TOTP por cuenta bloquean el factor 15 minutos. Las pruebas limitadas también tienen cinco intentos; solicitar desafíos nuevos no evita el bloqueo TOTP. Throttler limita IP/ruta a 20/minuto por proceso; almacenamiento compartido se resolverá para múltiples réplicas.
+- D-24: autenticación completa y guards reutilizables en 004; administración, recuperación 2FA y dominio en siguientes incrementos. El usuario autorizó publicación de los cuatro commits.
+- D-25: se añade `docs/CONTRIBUTING.md` para coordinar responsables, contratos, pruebas, overview y revisión por incremento con el grupo.
