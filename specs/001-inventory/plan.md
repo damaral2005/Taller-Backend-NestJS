@@ -1,6 +1,6 @@
 # Plan 001 — implementación incremental
 
-Fecha: 2026-10-06. Estado: primer commit documental; commits 2 y 3 propuestos.
+Fecha: 2026-10-06. Estado: commits 1 y 2 implementados; commit 2 verificado según `specs/002-bootstrap`, pendiente de revisión conjunta; commit 3 pendiente.
 
 ## Arquitectura prevista
 
@@ -27,7 +27,7 @@ Validación: revisión documental, comprobación de enlaces, suma de porcentajes
 
 Mensaje propuesto: `feat: bootstrap NestJS API with health checks and tests`.
 
-Antes de desarrollar: incorporar `specs/002-bootstrap/{spec,plan,tasks}.md`, con contrato exacto de health, configuración y criterios de prueba; resolver runtime y versiones compatibles.
+Especificación incorporada: `specs/002-bootstrap/{spec,plan,tasks}.md`, con contrato exacto de health, configuración y criterios de prueba. Runtime: Node 24 y npm 11; versiones compatibles verificadas contra metadata npm y fijadas en el proyecto.
 
 Incluye:
 
@@ -62,14 +62,14 @@ El commit 3 no implementa todavía las rutas completas de inventario ni demuestr
 
 ## Incrementos posteriores
 
-| Incremento | Alcance y evidencias |
-| --- | --- |
-| Autenticación | Resolver políticas pendientes, enrolamiento TOTP, login con desafío, JWT, sesiones, logout, límites y pruebas. |
-| Administración | Crear/listar usuarios, asignación de roles, guards y pruebas de permisos vigentes. |
-| Catálogo | Productos, validaciones, filtros, paginación, SKU único y desactivación. |
-| Movimientos | Entradas/salidas transaccionales, consulta del historial y pruebas de concurrencia y rollback. |
-| Entrega | Postman, informe, README completo, cobertura final y trazabilidad de todos los criterios. |
-| Despliegue | Elegir proveedor, crear configuración reproducible, aplicar migraciones, completar pipeline automatizado y registrar URLs/evidencias. |
+| Incremento     | Alcance y evidencias                                                                                                                  |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Autenticación  | Resolver políticas pendientes, enrolamiento TOTP, login con desafío, JWT, sesiones, logout, límites y pruebas.                        |
+| Administración | Crear/listar usuarios, asignación de roles, guards y pruebas de permisos vigentes.                                                    |
+| Catálogo       | Productos, validaciones, filtros, paginación, SKU único y desactivación.                                                              |
+| Movimientos    | Entradas/salidas transaccionales, consulta del historial y pruebas de concurrencia y rollback.                                        |
+| Entrega        | Postman, informe, README completo, cobertura final y trazabilidad de todos los criterios.                                             |
+| Despliegue     | Elegir proveedor, crear configuración reproducible, aplicar migraciones, completar pipeline automatizado y registrar URLs/evidencias. |
 
 Cada incremento necesita especificación, plan y tareas antes del código y un overview al cerrarse. No se presume que los tres primeros commits satisfagan toda la rúbrica.
 

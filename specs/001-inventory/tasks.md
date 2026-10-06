@@ -12,16 +12,17 @@ Fecha: 2026-10-06. Una marca completada corresponde a trabajo verificable, no a 
 - [x] C1-06: documentar decisiones, pendientes, flujo por commit y overview.
 - [x] C1-07: verificar enlaces locales, rúbrica y whitespace; resultados registrados en el overview.
 - [x] C1-08: registrar este incremento como primer commit local con los archivos documentales verificados.
-- [ ] C1-09: revisar el overview con el usuario antes de empezar el commit 2.
+- [x] C1-09: overview presentado; el usuario autorizó avanzar al segundo commit el 2026-10-06.
 
-## Commit 2 — pendiente
+## Commit 2 — implementado; pendiente de revisión conjunta
 
-- [ ] C2-01: revisar feedback del commit 1 y actualizar documentos afectados.
-- [ ] C2-02: especificar bootstrap y resolver runtime/versiones compatibles.
-- [ ] C2-03: crear NestJS, configuración, validación y health.
-- [ ] C2-04: configurar Jest, Supertest, cobertura mínima y CI inicial.
-- [ ] C2-05: ejecutar checks, documentar resultados reales y cerrar overview.
-- [ ] C2-06: crear commit y revisar overview con el usuario.
+- [x] C2-01: el usuario autorizó continuar sin cambios de alcance; documentos actualizados.
+- [x] C2-02: bootstrap especificado en `specs/002-bootstrap`; versiones compatibles verificadas y fijadas.
+- [x] C2-03: NestJS, configuración, validación y health implementados.
+- [x] C2-04: Jest, Supertest, umbral de cobertura y CI inicial configurados.
+- [x] C2-05: checks pasan; resultados y limitaciones registrados en `docs/commits/002.md`.
+- [x] C2-06: registrar el segundo commit local.
+- [ ] C2-07: revisar el overview del commit 2 con el usuario antes del tercero.
 
 ## Commit 3 — pendiente
 
