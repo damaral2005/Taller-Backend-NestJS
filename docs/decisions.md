@@ -19,12 +19,18 @@
 
 ## Pendientes y momento de resolución
 
+Decisiones del commit 3:
+
+- D-15: `@nestjs/typeorm` 12.0.2, TypeORM 1.1.1 y `pg` 8.23.1, con compatibilidad verificada en npm y versiones exactas en el lockfile.
+- D-16: PostgreSQL 16.15-alpine; desarrollo en 5433 con volumen y pruebas en 5434 con almacenamiento temporal, publicados solo en localhost.
+- D-17: saldo almacenado, movimientos con FK `RESTRICT`, username/SKU canónicos y restricciones en la migración. No hay sincronización automática de esquema.
+- D-18: seed en una transacción con bloqueo asesor, claves estables y preservación de datos existentes. Hash scrypt de Node con `N=32768, r=8, p=3` y salt aleatoria.
+- D-19: cada suite de PostgreSQL crea y elimina solo un esquema propio dentro de una base con sufijo `_test`. La configuración de test no hereda la conexión de desarrollo.
+
 El código propio se compila a CommonJS; NestJS 12 distribuye dependencias ESM. Los scripts de pruebas habilitan las VM de módulos de Node para que Jest pueda cargarlas, según su documentación oficial. No se simula Nest ni se excluyen estas pruebas para resolver la compatibilidad.
 
 | ID   | Decisión pendiente                                                                                                           | Resolver antes de                          |
 | ---- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| P-02 | Versiones compatibles de TypeORM y driver PostgreSQL; runtime y herramientas base resueltos en D-10/D-11.                    | Implementar commit 3                       |
-| P-03 | Modelo exacto de datos, normalización de SKU/username y claves del seed.                                                     | Implementar commit 3                       |
 | P-04 | Librería TOTP, parámetros, vigencia JWT/desafíos, límites de intentos, enrolamiento/recuperación y política de último admin. | Implementar autenticación y administración |
 | P-05 | Campos exactos de DTOs, paginación y formato uniforme de errores.                                                            | Implementar cada ruta                      |
 | P-06 | Integrantes y autoría de contribuciones reales.                                                                              | Revisar participación y preparar entrega   |

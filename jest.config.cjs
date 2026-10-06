@@ -9,6 +9,7 @@ const shared = {
 };
 
 module.exports = {
+  testTimeout: 30000,
   projects: [
     {
       ...shared,

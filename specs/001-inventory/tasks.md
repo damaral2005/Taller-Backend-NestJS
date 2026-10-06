@@ -14,7 +14,7 @@ Fecha: 2026-10-06. Una marca completada corresponde a trabajo verificable, no a 
 - [x] C1-08: registrar este incremento como primer commit local con los archivos documentales verificados.
 - [x] C1-09: overview presentado; el usuario autorizó avanzar al segundo commit el 2026-10-06.
 
-## Commit 2 — implementado; pendiente de revisión conjunta
+## Commit 2 — cerrado
 
 - [x] C2-01: el usuario autorizó continuar sin cambios de alcance; documentos actualizados.
 - [x] C2-02: bootstrap especificado en `specs/002-bootstrap`; versiones compatibles verificadas y fijadas.
@@ -22,16 +22,18 @@ Fecha: 2026-10-06. Una marca completada corresponde a trabajo verificable, no a 
 - [x] C2-04: Jest, Supertest, umbral de cobertura y CI inicial configurados.
 - [x] C2-05: checks pasan; resultados y limitaciones registrados en `docs/commits/002.md`.
 - [x] C2-06: registrar el segundo commit local.
-- [ ] C2-07: revisar el overview del commit 2 con el usuario antes del tercero.
+- [x] C2-07: el usuario autorizó avanzar al commit 3 tras el overview, el 2026-10-06.
 
-## Commit 3 — pendiente
+## Commit 3 — implementado; pendiente de revisión conjunta
 
-- [ ] C3-01: revisar feedback del commit 2 y especificar persistencia/seed.
-- [ ] C3-02: definir esquema, constraints, estrategia de saldo e idempotencia.
-- [ ] C3-03: configurar PostgreSQL, TypeORM, migración y aislamiento de pruebas.
-- [ ] C3-04: implementar seed con admin, operador y datos de inventario.
-- [ ] C3-05: probar migración, integridad, rollback e idempotencia en PostgreSQL real; extender CI.
-- [ ] C3-06: actualizar README y documentos SDD, crear commit y revisar overview.
+- [x] C3-01: usuario autorizó continuar; especificación de persistencia/seed preparada.
+- [x] C3-02: esquema, constraints, saldo almacenado y claves de seed definidos en el incremento 003.
+- [x] C3-03: PostgreSQL, TypeORM, migración y aislamiento configurados y verificados.
+- [x] C3-04: seed crea admin, operador y datos de inventario sin duplicar ni borrar registros existentes.
+- [x] C3-05: migración, integridad, rollback, persistencia e idempotencia/concurrencia pasan en PostgreSQL; CI extendido.
+- [x] C3-06: README, SDD y overview actualizados con resultados reales.
+- [x] C3-07: registrar el tercer commit local.
+- [ ] C3-08: revisar overview con el usuario antes de continuar.
 
 ## Entrega completa — pendiente después de los tres commits
 

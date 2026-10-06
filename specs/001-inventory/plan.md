@@ -1,6 +1,6 @@
 # Plan 001 — implementación incremental
 
-Fecha: 2026-10-06. Estado: commits 1 y 2 implementados; commit 2 verificado según `specs/002-bootstrap`, pendiente de revisión conjunta; commit 3 pendiente.
+Fecha: 2026-10-06. Estado: commits 1 y 2 cerrados; commit 3 implementado y verificado según `specs/003-persistence`, pendiente de revisión conjunta.
 
 ## Arquitectura prevista
 
@@ -44,7 +44,7 @@ Aceptación: instalación desde lockfile, lint, build, unidades, pruebas HTTP y 
 
 Mensaje propuesto: `feat: add PostgreSQL migrations and initial inventory seed`.
 
-Antes de desarrollar: incorporar `specs/003-persistence/{spec,plan,tasks}.md`, con esquema, constraints, transacciones, variables, aislamiento de pruebas y contrato del seed.
+Especificación incorporada antes del código: `specs/003-persistence/{spec,plan,tasks}.md`, con esquema, constraints, transacciones, variables, aislamiento de pruebas y contrato del seed. Resultados registrados en `docs/commits/003.md`.
 
 Incluye:
 

@@ -3,6 +3,18 @@ export interface AppEnvironment {
   PORT: number;
 }
 
+export function parsePort(value: unknown, variable: string): number {
+  const message = `${variable} debe ser un entero entre 1 y 65535.`;
+  if (typeof value !== 'string' || !/^\d+$/.test(value)) {
+    throw new Error(message);
+  }
+  const port = Number(value);
+  if (!Number.isSafeInteger(port) || port < 1 || port > 65535) {
+    throw new Error(message);
+  }
+  return port;
+}
+
 export function validateEnvironment(
   environment: Record<string, unknown>,
 ): AppEnvironment {
@@ -16,17 +28,8 @@ export function validateEnvironment(
     throw new Error('NODE_ENV debe ser development, test o production.');
   }
 
-  const rawPort = environment.PORT ?? '3000';
-
-  if (typeof rawPort !== 'string' || !/^\d+$/.test(rawPort)) {
-    throw new Error('PORT debe ser un entero entre 1 y 65535.');
-  }
-
-  const port = Number(rawPort);
-
-  if (!Number.isSafeInteger(port) || port < 1 || port > 65535) {
-    throw new Error('PORT debe ser un entero entre 1 y 65535.');
-  }
-
-  return { NODE_ENV: nodeEnv, PORT: port };
+  return {
+    NODE_ENV: nodeEnv,
+    PORT: parsePort(environment.PORT ?? '3000', 'PORT'),
+  };
 }

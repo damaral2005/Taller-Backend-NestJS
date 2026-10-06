@@ -18,6 +18,25 @@ jobs:
     env:
       NODE_ENV: test
       PORT: 3000
+      TEST_DB_HOST: 127.0.0.1
+      TEST_DB_PORT: 5432
+      TEST_DB_NAME: inventory_test
+      TEST_DB_USERNAME: inventory_test
+      TEST_DB_PASSWORD: inventory_test_local
+    services:
+      postgres:
+        image: postgres:16.15-alpine
+        env:
+          POSTGRES_DB: inventory_test
+          POSTGRES_USER: inventory_test
+          POSTGRES_PASSWORD: inventory_test_local
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U inventory_test -d inventory_test"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 20
     steps:
       - uses: actions/checkout@v7
         with:

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { validateEnvironment } from './config/environment';
+import { validateRuntimeEnvironment } from './config/runtime-environment';
+import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
 
 @Module({
@@ -9,8 +10,9 @@ import { HealthModule } from './health/health.module';
       isGlobal: true,
       ignoreEnvFile: process.env.NODE_ENV === 'test',
       skipProcessEnv: true,
-      validate: validateEnvironment,
+      validate: validateRuntimeEnvironment,
     }),
+    DatabaseModule,
     HealthModule,
   ],
 })
