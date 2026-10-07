@@ -1,6 +1,6 @@
 # Tareas 001 — seguimiento
 
-Fecha: 2026-10-06. Una marca completada corresponde a trabajo verificable, no a comportamiento futuro.
+Fecha: actualización 2026-10-07. Una marca completada corresponde a trabajo verificable, no a comportamiento futuro.
 
 ## Commit 1 — documentación
 
@@ -42,13 +42,23 @@ Fecha: 2026-10-06. Una marca completada corresponde a trabajo verificable, no a 
 - [x] C4-03: sesiones revocables, identidad, límites persistidos y guards reutilizables implementados.
 - [x] C4-04: 126 pruebas, cobertura y checks finales verificados; evidencia en `docs/commits/004.md`.
 - [x] C4-05: documentación actualizada; registrar este incremento como cuarto commit.
-- [ ] C4-06: publicación posterior al commit; resultado de push/CI informado al cerrar y en el próximo incremento.
-- [ ] C4-07: overview y recomendación al grupo presentados; revisión antes del siguiente incremento.
+- [x] C4-06: `bf84eaa` publicado y hash remoto verificado; CI success en run 37534758745.
+- [x] C4-07: overview/recomendación presentados; usuario autoriza commit 5 el 2026-10-07.
 
-## Entrega completa — pendiente después de los tres commits
+## Commit 5 — administración y autorización
 
-- [ ] F-01: autenticación JWT, enrolamiento y verificación TOTP, sesiones y logout revocable.
-- [ ] F-02: roles, administración de usuarios y permisos por ruta.
+- [x] C5-01: usuario autoriza implementar autorización y push; contratos/políticas en `specs/005-users` antes del código.
+- [x] C5-02: crear/listar usuarios y cambiar roles con guards, proyección segura y emisor de enrolamiento transaccional.
+- [x] C5-03: protección de último admin registrado/enrolado y revalidación de actor/sesión bajo bloqueo administrativo.
+- [x] C5-04: 184 pruebas en 13 suites, PostgreSQL real y cobertura >=80% en las cuatro métricas; smoke compilado correcto.
+- [x] C5-05: documentación, trazabilidad, README y overview actualizados; registrar este incremento como quinto commit.
+- [ ] C5-06: push y CI posteriores al commit; evidencia en cierre y próximo incremento.
+- [ ] C5-07: presentar overview y avance; revisión antes del siguiente incremento.
+
+## Entrega completa — seguimiento
+
+- [x] F-01: autenticación JWT, enrolamiento y verificación TOTP, sesiones y logout revocable implementados/verificados en 004.
+- [x] F-02: administración/roles y `401`/`403` verificados en 005; aplicar los mismos guards a inventario al crear esas rutas.
 - [ ] F-03: catálogo y existencias con validaciones y paginación.
 - [ ] F-04: movimientos auditables, atomicidad y control de concurrencia.
 - [ ] F-05: cobertura global mínima del 80% y pruebas HTTP sobre PostgreSQL real.

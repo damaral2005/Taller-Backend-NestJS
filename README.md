@@ -6,9 +6,9 @@ Repositorio: [Taller-Backend-NestJS](https://github.com/damaral2005/Taller-Backe
 
 ## Estado actual
 
-Los commits 1 y 2 establecen el SDD y la base NestJS. El commit 3 incorpora PostgreSQL y seed. El commit 4 añade enrolamiento TOTP, login con JWT, sesiones revocables, identidad y guards reutilizables de autenticación/roles. **Administración de usuarios, catálogo, movimientos y despliegue siguen pendientes.**
+Los commits 1 y 2 establecen el SDD y la base NestJS. El commit 3 incorpora PostgreSQL y seed; el 4 añade JWT/TOTP y sesiones revocables. El incremento 5 implementa administración de usuarios y roles con protección del último admin. Sus verificaciones y estado de cierre se registran en el overview. **Catálogo, movimientos y despliegue siguen pendientes.**
 
-Health y las seis rutas de autenticación están disponibles. Los contratos de usuarios e inventario de la especificación 001 representan funcionalidades futuras.
+El código incluye health, seis rutas de autenticación y tres rutas administrativas de usuarios. Los contratos de inventario de la especificación 001 representan funcionalidades futuras.
 
 La carpeta `2026-2-nestjs-postgres` se utiliza como referencia del curso. El desarrollo propio se realiza en `Taller Backend – NestJS`; no se modifica el ejemplo ni se copia su historial.
 
@@ -25,6 +25,8 @@ La carpeta `2026-2-nestjs-postgres` se utiliza como referencia del curso. El des
 - [Overview y verificación del commit 3](docs/commits/003.md).
 - [Especificación de autenticación](specs/004-authentication/spec.md), [plan](specs/004-authentication/plan.md) y [tareas](specs/004-authentication/tasks.md).
 - [Overview y verificación del commit 4](docs/commits/004.md).
+- [Especificación de administración y roles](specs/005-users/spec.md), [plan](specs/005-users/plan.md) y [tareas](specs/005-users/tasks.md).
+- [Overview y verificaciones del commit 5](docs/commits/005.md).
 - [Guía para colaborar con Spec-Driven Design](docs/CONTRIBUTING.md).
 
 ## Flujo de trabajo por commit
@@ -46,8 +48,9 @@ Los cambios de alcance se registran; una tarea pendiente no se presenta como com
 | 2      | Base NestJS, configuración, validación, health y pruebas iniciales | Ver resultados y estado en el [overview](docs/commits/002.md) |
 | 3      | PostgreSQL, migración inicial, seed y pruebas de persistencia      | Ver resultados y estado en el [overview](docs/commits/003.md) |
 | 4      | JWT, enrolamiento TOTP, sesiones revocables y guards               | Ver resultados y estado en el [overview](docs/commits/004.md) |
+| 5      | Crear/listar usuarios, asignar roles y proteger al último admin    | Ver resultados y estado en el [overview](docs/commits/005.md) |
 
-Administración de usuarios/permisos, inventario, colección Postman, informe y despliegue se desarrollarán en incrementos posteriores. Estos incrementos no completan la entrega.
+Inventario, colección Postman, informe y despliegue se desarrollarán en incrementos posteriores. Estos incrementos no completan la entrega.
 
 ## Requisitos y ejecución
 
@@ -175,7 +178,36 @@ Invoke-RestMethod -Method Post "$base/auth/logout" -Headers $headers
 
 Las rutas son relativas a `/api/v1`. Se rechazan campos adicionales con `400`; credenciales/códigos/pruebas inválidos, consumidos o vencidos con `401`; exceso de peticiones con `429`. Username canónico y contraseña de 12–128 caracteres. Cinco fallos de contraseña bloquean login 15 minutos; cinco fallos TOTP por cuenta bloquean 2FA y desafíos nuevos 15 minutos. El límite por IP/ruta es 20 peticiones/minuto en memoria por proceso. TOTP admite ±1 paso y cada contador puede consumirse una sola vez por usuario.
 
-Los secretos se cifran con AES-256-GCM, las credenciales temporales solo se guardan como digest SHA256 y todas las respuestas auth llevan `Cache-Control: no-store`. El guard comprueba JWT y sesión en PostgreSQL y toma el rol vigente de BD. Los guards de roles están listos y probados; las rutas de administración que los utilizarán siguen pendientes. No hay recuperación de 2FA, refresh tokens ni rotación de claves automatizada; no se puede saltar 2FA usando solo la contraseña.
+Los secretos se cifran con AES-256-GCM, las credenciales temporales solo se guardan como digest SHA256 y todas las respuestas auth llevan `Cache-Control: no-store`. El guard comprueba JWT y sesión en PostgreSQL y toma el rol vigente de BD. Administración utiliza además el guard de roles con acceso exclusivo para admin. No hay recuperación de 2FA, refresh tokens ni rotación de claves automatizada; no se puede saltar 2FA usando solo la contraseña.
+
+## Administración de usuarios y roles
+
+Después de completar login/2FA como admin, usa el Bearer JWT obtenido. Un operador recibe `403` y una petición sin sesión válida recibe `401` en las tres rutas. No existe registro público.
+
+| Ruta relativa a `/api/v1` | Parámetros                                                 | Respuesta                                     |
+| ------------------------- | ---------------------------------------------------------- | --------------------------------------------- |
+| `POST /users`             | JSON `username`, `password`, `role` (`admin` u `operador`) | `201`: `{user,enrollmentToken,expiresIn:900}` |
+| `GET /users`              | `page` opcional 1–10000, `limit` opcional 1–100            | `200`: `{data,page,limit,total,totalPages}`   |
+| `PATCH /users/:id/role`   | UUID v4, JSON `{role}`                                     | `200`: usuario seguro actualizado             |
+
+Usuario seguro contiene solo `id`, `username`, `role`, `createdAt` y `updatedAt`, con fechas ISO-8601. El listado no devuelve credenciales ni factores. La credencial que entrega creación sirve únicamente para que el nuevo usuario configure/confirme TOTP usando las rutas existentes; debe comunicarse privadamente y nunca versionarse. Usuario y credencial se crean en una sola transacción.
+
+Username debe ser canónico: 3–64 caracteres, minúsculas ASCII, dígitos y `._-`, empezando por letra/dígito. Password de 12–128 caracteres, sin transformación. Body/query con campos extra, UUID/rol/formato inválido → `400`; username duplicado → `409`; destino inexistente → `404`. No se aceptan campos para editar hash, factor, contraseña o stock en el cambio de rol.
+
+Paginación predeterminada: página 1, límite 20. Query debe contener dígitos sin ceros iniciales; no se aceptan signos, espacios, exponentes, fracciones ni valores repetidos/arrays. Orden por username e ID; una página fuera del total devuelve `data:[]`.
+
+Se rechaza con `409` degradar al último admin registrado o al único admin con 2FA activo. Crear otro admin sin enrolar no permite degradar al único admin capaz de autenticarse. El rol idéntico es idempotente; cambiarlo conserva contraseña, factor e historial. La misma sesión refleja sus nuevos permisos sin volver a iniciar sesión. Transacciones con bloqueo asesor serializan cambios administrativos y revalidan sesión/rol al salir de la espera, protegiendo contra cambios concurrentes. Todas las respuestas de administración, incluidos errores, llevan `Cache-Control: no-store`.
+
+Ejemplo PowerShell después del recorrido de autenticación anterior (`$base` y `$headers` siguen definidos; utiliza una sesión vigente que no hayas cerrado):
+
+```powershell
+$newUser = Invoke-RestMethod -Method Post "$base/users" -Headers $headers -ContentType 'application/json' -Body (@{ username = 'nuevo_operador'; password = '<contraseña_propia_de_12_a_128_caracteres>'; role = 'operador' } | ConvertTo-Json)
+# Comunica $newUser.enrollmentToken privadamente para configurar/confirmar TOTP.
+Invoke-RestMethod "$base/users?page=1&limit=20" -Headers $headers
+Invoke-RestMethod -Method Patch "$base/users/$($newUser.user.id)/role" -Headers $headers -ContentType 'application/json' -Body (@{ role = 'admin' } | ConvertTo-Json)
+```
+
+El enrolamiento privado por script sigue disponible para usuarios existentes sin TOTP si su credencial inicial venció; no resetea factores activos. El incremento 5 no necesita migración ni dependencias nuevas: reutiliza el esquema de usuarios y autenticación.
 
 ## Pruebas y verificaciones
 
@@ -206,7 +238,7 @@ La cobertura incluye todos los archivos de `src` salvo tests y se exige en líne
 
 Las pruebas HTTP cierran sus servidores al terminar y usan puertos efímeros para verificar el listener. El controlador de validación existe únicamente en `test/` y no se distribuye con la API.
 
-Los scripts ya habilitan las VM de módulos de Node para que Jest cargue las dependencias ESM de NestJS 12; no es necesario añadir flags manualmente. En el commit 4 pasan **126 pruebas en 11 suites**, con **98,51% de cobertura de líneas** y las cuatro métricas por encima del 80%. El [overview](docs/commits/004.md) registra resultados y límites.
+Los scripts habilitan las VM de módulos de Node para cargar las dependencias ESM de NestJS 12 y desactivan Watchman por CLI. Haste sigue los enlaces para incluir también los archivos que OneDrive anuncia como reparse points; no es necesario añadir flags manualmente. En el incremento 5 pasan **184 pruebas en 13 suites**, con **98,70% de cobertura de líneas** y las cuatro métricas por encima del 80%. El [overview](docs/commits/005.md) registra resultados y límites.
 
 ## Integración continua
 
@@ -219,7 +251,7 @@ src/
   config/environment.ts   # Validación de configuración
   config/runtime-environment.ts # Configuración HTTP y PostgreSQL
   database/               # Conexión, comandos y migración inicial
-  users/entities/         # Usuario y rol persistidos
+  users/                  # Entidad, administración y roles
   products/entities/      # Producto y stock
   movements/entities/     # Historial con usuario y producto
   seed/                   # Credenciales, hash y carga transaccional
@@ -235,7 +267,7 @@ docs/                     # Decisiones y overview por commit
 .github/workflows/ci.yml   # Checks automatizados
 ```
 
-La siguiente fase implementará administración de usuarios y roles con su propia especificación antes del código. Consulta la [guía del grupo](docs/CONTRIBUTING.md) para preparar tu incremento.
+La siguiente fase implementará catálogo de productos con su propia especificación antes del código. Consulta la [guía del grupo](docs/CONTRIBUTING.md) para preparar tu incremento.
 
 ## Entrega final pendiente
 

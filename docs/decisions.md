@@ -29,12 +29,12 @@ Decisiones del commit 3:
 
 El código propio se compila a CommonJS; NestJS 12 distribuye dependencias ESM. Los scripts de pruebas habilitan las VM de módulos de Node para que Jest pueda cargarlas, según su documentación oficial. No se simula Nest ni se excluyen estas pruebas para resolver la compatibilidad.
 
-| ID   | Decisión pendiente                                                                                                                    | Resolver antes de                        |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| P-04 | Recuperación 2FA, rotación de claves y política de último admin; TOTP, expiraciones, límites y enrolamiento inicial resueltos en 004. | Ampliar mantenimiento y administración   |
-| P-05 | Campos exactos de DTOs, paginación y formato uniforme de errores.                                                                     | Implementar cada ruta                    |
-| P-06 | Integrantes y autoría de contribuciones reales.                                                                                       | Revisar participación y preparar entrega |
-| P-07 | Proveedor de nube, base de datos, credenciales y estrategia de migración/despliegue.                                                  | Implementar despliegue                   |
+| ID   | Decisión pendiente                                                                                                 | Resolver antes de                        |
+| ---- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------- |
+| P-04 | Recuperación 2FA y rotación de claves; autenticación resuelta en 004 y política de último admin concretada en 005. | Ampliar mantenimiento                    |
+| P-05 | Campos exactos de DTOs, paginación y formato uniforme de errores.                                                  | Implementar cada ruta                    |
+| P-06 | Integrantes y autoría de contribuciones reales.                                                                    | Revisar participación y preparar entrega |
+| P-07 | Proveedor de nube, base de datos, credenciales y estrategia de migración/despliegue.                               | Implementar despliegue                   |
 
 El ejemplo puede orientar la estructura modular y los DTOs; no demuestra cumplimiento de JWT, 2FA, roles, cobertura ni despliegue. No se reutilizan passwords, secretos o datos personales de otros entornos.
 
@@ -46,3 +46,11 @@ Decisiones del commit 4:
 - D-23: cinco fallos de contraseña o TOTP por cuenta bloquean el factor 15 minutos. Las pruebas limitadas también tienen cinco intentos; solicitar desafíos nuevos no evita el bloqueo TOTP. Throttler limita IP/ruta a 20/minuto por proceso; almacenamiento compartido se resolverá para múltiples réplicas.
 - D-24: autenticación completa y guards reutilizables en 004; administración, recuperación 2FA y dominio en siguientes incrementos. El usuario autorizó publicación de los cuatro commits.
 - D-25: se añade `docs/CONTRIBUTING.md` para coordinar responsables, contratos, pruebas, overview y revisión por incremento con el grupo.
+
+Decisiones del commit 5:
+
+- D-26: tres rutas administrativas exclusivas para admin: crear/listar usuarios y cambiar rol. Username canónico, roles explícitos, paginación 1–10000/1–100 y proyección de identidad/fechas sin secretos.
+- D-27: usuario y credencial limitada se crean en una sola transacción reutilizando el emisor de enrolamiento; no hay registro público, acceso sin 2FA, dependencias nuevas ni cambios de esquema.
+- D-28: no degradar último admin registrado ni único admin con TOTP activo. Un admin pendiente no permite perder al último admin capaz de autenticarse. Rol idéntico no cambia timestamps; cambios conservan hash/factor/historial.
+- D-29: escrituras administrativas serializadas con bloqueo asesor transaccional `(721005,1)`; listado con variante compartida. Revalidar actor/sesión después del bloqueo y bloquear después la fila destino. Así se protege la política entre instancias y peticiones en espera.
+- D-30: mantener todas las suites/fuentes con detección de enlaces de Jest para archivos sincronizados por OneDrive; Watchman desactivado. Nuevos tests HTTP mantienen un listener efímero durante cada caso y verifican esperas reales con pg_locks.

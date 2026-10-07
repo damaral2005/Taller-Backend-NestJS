@@ -2,7 +2,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 
 export function configureApplication(app: INestApplication): void {
   app.use(
-    '/api/v1/auth',
+    ['/api/v1/auth', '/api/v1/users'],
     (
       _request: unknown,
       response: { setHeader(name: string, value: string): void },

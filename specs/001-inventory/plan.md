@@ -1,6 +1,6 @@
 # Plan 001 — implementación incremental
 
-Fecha: 2026-10-06. Estado: commits 1, 2 y 3 cerrados; el usuario autorizó commit 4 de autenticación y push de los incrementos.
+Fecha: actualización 2026-10-07. Estado: commits 1 a 4 cerrados/publicados; CI de 004 exitoso. Usuario autoriza commit 5 de administración/autorización y push al finalizar.
 
 ## Arquitectura prevista
 
@@ -68,16 +68,23 @@ Contratos, políticas, arquitectura y tareas previos al código en `specs/004-au
 
 Aceptación: flujo completo y errores con Supertest/PostgreSQL real; concurrencia, expiración, intentos, revocación y rol vigente; cobertura global >=80% sin excluir código. Crear commit y verificar push autorizado. Administración de usuarios, recuperación 2FA y dominio permanecen para los siguientes incrementos.
 
+## Commit 5 — administración y autorización
+
+Mensaje previsto: `feat: add admin user management and role authorization`.
+
+Contratos, políticas y tareas previos al código en `specs/005-users/{spec,plan,tasks}.md`. Crear usuarios y enrolamiento de forma atómica, listado paginado, asignación de roles exclusiva para admin, protección de último admin registrado/enrolado y revalidación transaccional. Sin migración ni nuevas dependencias. Resultados y limitaciones en `docs/commits/005.md`.
+
+Aceptación: rutas reales con `401`/`403`, DTOs/duplicados/paginación, cambio vigente de permisos, concurrencia/rollback y cuenta/sesión modificadas mientras esperan. Pruebas Jest/Supertest/PostgreSQL y todas las métricas >=80%; documentación y overview antes del commit; push y CI después. R-03 queda completo solo tras verificar estos criterios.
+
 ## Incrementos posteriores
 
-| Incremento     | Alcance y evidencias                                                                                                                  |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Recuperación   | Definir y probar recuperación de 2FA con identidad verificada, sin bypass por contraseña.                                             |
-| Administración | Crear/listar usuarios, asignación de roles, guards y pruebas de permisos vigentes.                                                    |
-| Catálogo       | Productos, validaciones, filtros, paginación, SKU único y desactivación.                                                              |
-| Movimientos    | Entradas/salidas transaccionales, consulta del historial y pruebas de concurrencia y rollback.                                        |
-| Entrega        | Postman, informe, README completo, cobertura final y trazabilidad de todos los criterios.                                             |
-| Despliegue     | Elegir proveedor, crear configuración reproducible, aplicar migraciones, completar pipeline automatizado y registrar URLs/evidencias. |
+| Incremento   | Alcance y evidencias                                                                                                                  |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Recuperación | Definir y probar recuperación de 2FA con identidad verificada, sin bypass por contraseña.                                             |
+| Catálogo     | Productos, validaciones, filtros, paginación, SKU único y desactivación.                                                              |
+| Movimientos  | Entradas/salidas transaccionales, consulta del historial y pruebas de concurrencia y rollback.                                        |
+| Entrega      | Postman, informe, README completo, cobertura final y trazabilidad de todos los criterios.                                             |
+| Despliegue   | Elegir proveedor, crear configuración reproducible, aplicar migraciones, completar pipeline automatizado y registrar URLs/evidencias. |
 
 Cada incremento necesita especificación, plan y tareas antes del código y un overview al cerrarse. No se presume que los tres primeros commits satisfagan toda la rúbrica.
 

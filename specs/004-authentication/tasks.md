@@ -7,5 +7,5 @@
 - [x] A-T05: 126 pruebas reales en 11 suites; cobertura >=80% en todas las métricas sobre 34 archivos.
 - [x] A-T06: README, decisiones, seguimiento, guía del grupo y overview actualizados.
 - [x] A-T07: checks finales completados; registrar este incremento como cuarto commit local.
-- [ ] A-T08: ejecutar push autorizado después del commit y verificar hash remoto; resultado en el cierre de la conversación y próximo incremento.
-- [ ] A-T09: presentar overview y recomendación para el grupo; revisar antes del siguiente incremento.
+- [x] A-T08: `bf84eaa` publicado; hash local/remoto coincidente y CI remoto success el 2026-10-06 (run 37534758745).
+- [x] A-T09: overview y recomendación presentados; el usuario autoriza administración en commit 5 el 2026-10-07.

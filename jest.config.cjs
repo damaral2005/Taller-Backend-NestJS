@@ -6,9 +6,11 @@ const shared = {
     '^.+\\.ts$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.json' }],
   },
   clearMocks: true,
+  haste: { enableSymlinks: true },
 };
 
 module.exports = {
+  watchman: false,
   testTimeout: 30000,
   projects: [
     {
