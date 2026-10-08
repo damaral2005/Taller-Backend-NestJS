@@ -6,9 +6,9 @@ Repositorio: [Taller-Backend-NestJS](https://github.com/damaral2005/Taller-Backe
 
 ## Estado actual
 
-Los commits 1 y 2 establecen el SDD y la base NestJS. El commit 3 incorpora PostgreSQL y seed; el 4 añade JWT/TOTP y sesiones revocables. El incremento 5 implementa administración de usuarios y roles con protección del último admin. Sus verificaciones y estado de cierre se registran en el overview. **Catálogo, movimientos y despliegue siguen pendientes.**
+Los commits 1 y 2 establecen el SDD y la base NestJS. El commit 3 incorpora PostgreSQL y seed; el 4 añade JWT/TOTP y sesiones revocables. El incremento 5 implementa administración de usuarios y roles con protección del último admin. El incremento 006 añade catálogo de productos en `feature-products`; su corrección y verificaciones se registran en el overview. **Movimientos, Postman y despliegue siguen pendientes.**
 
-El código incluye health, seis rutas de autenticación y tres rutas administrativas de usuarios. Los contratos de inventario de la especificación 001 representan funcionalidades futuras.
+El código incluye health, seis rutas de autenticación, tres rutas administrativas de usuarios y cinco rutas de catálogo. Los contratos de movimientos de la especificación 001 representan funcionalidades futuras.
 
 La carpeta `2026-2-nestjs-postgres` se utiliza como referencia del curso. El desarrollo propio se realiza en `Taller Backend – NestJS`; no se modifica el ejemplo ni se copia su historial.
 
@@ -27,6 +27,9 @@ La carpeta `2026-2-nestjs-postgres` se utiliza como referencia del curso. El des
 - [Overview y verificación del commit 4](docs/commits/004.md).
 - [Especificación de administración y roles](specs/005-users/spec.md), [plan](specs/005-users/plan.md) y [tareas](specs/005-users/tasks.md).
 - [Overview y verificaciones del commit 5](docs/commits/005.md).
+- [Especificación del catálogo](specs/006-catalog/spec.md), [plan](specs/006-catalog/plan.md) y [tareas](specs/006-catalog/tasks.md).
+- [Overview del catálogo y su corrección](docs/commits/006.md).
+- [Recorrido manual del catálogo con PowerShell y explicación del código](docs/catalog-manual.md).
 - [Guía para colaborar con Spec-Driven Design](docs/CONTRIBUTING.md).
 
 ## Flujo de trabajo por commit
@@ -42,15 +45,16 @@ Los cambios de alcance se registran; una tarea pendiente no se presenta como com
 
 ## Incrementos
 
-| Commit | Alcance                                                            | Estado                                                        |
-| ------ | ------------------------------------------------------------------ | ------------------------------------------------------------- |
-| 1      | Especificación de inventario, rúbrica y flujo de trabajo           | Cerrado; usuario autorizó avanzar                             |
-| 2      | Base NestJS, configuración, validación, health y pruebas iniciales | Ver resultados y estado en el [overview](docs/commits/002.md) |
-| 3      | PostgreSQL, migración inicial, seed y pruebas de persistencia      | Ver resultados y estado en el [overview](docs/commits/003.md) |
-| 4      | JWT, enrolamiento TOTP, sesiones revocables y guards               | Ver resultados y estado en el [overview](docs/commits/004.md) |
-| 5      | Crear/listar usuarios, asignar roles y proteger al último admin    | Ver resultados y estado en el [overview](docs/commits/005.md) |
+| Commit | Alcance                                                              | Estado                                                        |
+| ------ | -------------------------------------------------------------------- | ------------------------------------------------------------- |
+| 1      | Especificación de inventario, rúbrica y flujo de trabajo             | Cerrado; usuario autorizó avanzar                             |
+| 2      | Base NestJS, configuración, validación, health y pruebas iniciales   | Ver resultados y estado en el [overview](docs/commits/002.md) |
+| 3      | PostgreSQL, migración inicial, seed y pruebas de persistencia        | Ver resultados y estado en el [overview](docs/commits/003.md) |
+| 4      | JWT, enrolamiento TOTP, sesiones revocables y guards                 | Ver resultados y estado en el [overview](docs/commits/004.md) |
+| 5      | Crear/listar usuarios, asignar roles y proteger al último admin      | Ver resultados y estado en el [overview](docs/commits/005.md) |
+| 006    | Crear/consultar/editar productos, filtros y activación/desactivación | Ver resultados y estado en el [overview](docs/commits/006.md) |
 
-Inventario, colección Postman, informe y despliegue se desarrollarán en incrementos posteriores. Estos incrementos no completan la entrega.
+Movimientos de inventario, colección Postman, informe y despliegue se desarrollarán en incrementos posteriores. Estos incrementos no completan la entrega.
 
 ## Requisitos y ejecución
 
@@ -209,6 +213,24 @@ Invoke-RestMethod -Method Patch "$base/users/$($newUser.user.id)/role" -Headers 
 
 El enrolamiento privado por script sigue disponible para usuarios existentes sin TOTP si su credencial inicial venció; no resetea factores activos. El incremento 5 no necesita migración ni dependencias nuevas: reutiliza el esquema de usuarios y autenticación.
 
+## Catálogo de productos
+
+Todas las rutas son relativas a `/api/v1` y requieren una sesión vigente. Admin escribe; admin y operador leen.
+
+| Ruta                         | Entrada                                        | Respuesta                                   |
+| ---------------------------- | ---------------------------------------------- | ------------------------------------------- |
+| `POST /products`             | JSON `{sku,name,description?}`                 | `201`: producto activo con stock 0          |
+| `GET /products`              | Query `page,limit,search,active` opcionales    | `200`: `{data,page,limit,total,totalPages}` |
+| `GET /products/:id`          | UUID v4                                        | `200`: producto; `404` si no existe         |
+| `PATCH /products/:id`        | JSON `{name?,description?}`, al menos un campo | `200`: producto actualizado                 |
+| `PATCH /products/:id/status` | JSON `{active}` booleano                       | `200`: producto actualizado                 |
+
+Respuesta de producto: `id`, `sku`, `name`, `description`, `active`, `stock`, `createdAt`, `updatedAt`. SKU inmutable, 1–48 caracteres con formato `^[A-Z0-9][A-Z0-9._-]{0,47}$`; duplicado → `409`. Nombre de 1–120 caracteres con contenido visible; descripción opcional de 1–500, `null` permite borrarla. No se acepta editar stock ni enviar campos adicionales (`400`). Sin sesión → `401`; operador que escribe → `403`.
+
+El listado ordena por SKU e ID, con defaults page 1 y limit 20. `search` busca parcialmente en SKU/nombre sin distinguir mayúsculas y trata `%`, `_` y `\` como texto literal. `active` admite los strings `true` y `false`; por defecto aparecen ambos estados. Desactivar conserva saldo e historial. Repetir una edición/estado idéntico no cambia `updatedAt`. Las actualizaciones bloquean la fila en una transacción y escriben únicamente campos de catálogo; nunca cambian stock. No se necesitan migraciones nuevas.
+
+Sigue la [guía manual](docs/catalog-manual.md) para obtener una sesión nueva y probar cada ruta y error. Los movimientos se implementarán en el siguiente incremento.
+
 ## Pruebas y verificaciones
 
 | Comando                               | Función                                                      |
@@ -238,7 +260,7 @@ La cobertura incluye todos los archivos de `src` salvo tests y se exige en líne
 
 Las pruebas HTTP cierran sus servidores al terminar y usan puertos efímeros para verificar el listener. El controlador de validación existe únicamente en `test/` y no se distribuye con la API.
 
-Los scripts habilitan las VM de módulos de Node para cargar las dependencias ESM de NestJS 12 y desactivan Watchman por CLI. Haste sigue los enlaces para incluir también los archivos que OneDrive anuncia como reparse points; no es necesario añadir flags manualmente. En el incremento 5 pasan **184 pruebas en 13 suites**, con **98,70% de cobertura de líneas** y las cuatro métricas por encima del 80%. El [overview](docs/commits/005.md) registra resultados y límites.
+Los scripts habilitan las VM de módulos de Node para cargar las dependencias ESM de NestJS 12 y desactivan Watchman por CLI. Haste sigue los enlaces para incluir también los archivos que OneDrive anuncia como reparse points; no es necesario añadir flags manualmente. En la corrección de 006 pasan **341 pruebas en 15 suites**, con **98,89% de cobertura de líneas** y las cuatro métricas por encima del 80% sobre 45 archivos fuente. El [overview](docs/commits/006.md) registra resultados y límites. Para ejecutar solo catálogo: `npm test -- --runTestsByPath test/unit/products-contract.spec.ts` y `npm run test:e2e -- --runTestsByPath test/database/products.e2e-spec.ts` (con PostgreSQL de pruebas iniciado).
 
 ## Integración continua
 
@@ -252,7 +274,8 @@ src/
   config/runtime-environment.ts # Configuración HTTP y PostgreSQL
   database/               # Conexión, comandos y migración inicial
   users/                  # Entidad, administración y roles
-  products/entities/      # Producto y stock
+  products/               # Catálogo: DTOs, controller, module, services, entidad y proyección
+  common/pagination.ts    # Contrato de paginación compartido
   movements/entities/     # Historial con usuario y producto
   seed/                   # Credenciales, hash y carga transaccional
   auth/                   # Enrolamiento, TOTP, JWT, sesiones y guards
@@ -267,7 +290,7 @@ docs/                     # Decisiones y overview por commit
 .github/workflows/ci.yml   # Checks automatizados
 ```
 
-La siguiente fase implementará catálogo de productos con su propia especificación antes del código. Consulta la [guía del grupo](docs/CONTRIBUTING.md) para preparar tu incremento.
+La siguiente fase implementará movimientos con su propia especificación antes del código. Consulta la [guía del grupo](docs/CONTRIBUTING.md) para preparar tu incremento.
 
 ## Entrega final pendiente
 

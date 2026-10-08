@@ -9,15 +9,15 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from '../auth/auth.guard';
-import { Roles, RolesGuard } from '../auth/roles.guard';
+import { AuthGuard } from '../../auth/auth.guard';
+import { Roles, RolesGuard } from '../../auth/roles.guard';
 import {
   CreateProductDto,
   ListProductsDto,
   SetProductStatusDto,
   UpdateProductDto,
-} from './products.dto';
-import { ProductsService } from './products.service';
+} from '../DTOs/products.dto';
+import { ProductsService } from '../services/products.services';
 
 // Lectura: cualquier usuario autenticado. Escritura: solo admin (por ruta).
 @Controller('products')

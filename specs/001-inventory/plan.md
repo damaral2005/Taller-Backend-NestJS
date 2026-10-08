@@ -1,6 +1,6 @@
 # Plan 001 — implementación incremental
 
-Fecha: actualización 2026-10-07. Estado: commits 1 a 4 cerrados/publicados; CI de 004 exitoso. Usuario autoriza commit 5 de administración/autorización y push al finalizar.
+Fecha: actualización 2026-10-08. Estado: incrementos 001 a 005 publicados; CI de 005 exitoso. Catálogo aportado por el grupo en `feature-products` (`8699a2b`, `1d15709`); usuario autoriza corregir, verificar y publicar un commit en esa rama antes del recorrido manual.
 
 ## Arquitectura prevista
 
@@ -76,12 +76,15 @@ Contratos, políticas y tareas previos al código en `specs/005-users/{spec,plan
 
 Aceptación: rutas reales con `401`/`403`, DTOs/duplicados/paginación, cambio vigente de permisos, concurrencia/rollback y cuenta/sesión modificadas mientras esperan. Pruebas Jest/Supertest/PostgreSQL y todas las métricas >=80%; documentación y overview antes del commit; push y CI después. R-03 queda completo solo tras verificar estos criterios.
 
+## Incremento 006 — catálogo y corrección
+
+Contratos en `specs/006-catalog`: cinco rutas de productos, lectura autenticada, escritura exclusiva para admin, filtros/paginación y SKU inmutable. Reutiliza tabla y guards existentes; editar catálogo nunca escribe stock. El grupo publicó especificación e implementación en dos commits. La revisión detectó imports inválidos, formato y cierre documental incompleto; el usuario autoriza corregirlos manteniendo contratos y verificar PostgreSQL/CI antes de publicar resultados. Plan y tareas específicos registran la corrección; `docs/commits/006.md` contiene las mediciones y `docs/catalog-manual.md` guía las peticiones.
+
 ## Incrementos posteriores
 
 | Incremento   | Alcance y evidencias                                                                                                                  |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
 | Recuperación | Definir y probar recuperación de 2FA con identidad verificada, sin bypass por contraseña.                                             |
-| Catálogo     | Productos, validaciones, filtros, paginación, SKU único y desactivación.                                                              |
 | Movimientos  | Entradas/salidas transaccionales, consulta del historial y pruebas de concurrencia y rollback.                                        |
 | Entrega      | Postman, informe, README completo, cobertura final y trazabilidad de todos los criterios.                                             |
 | Despliegue   | Elegir proveedor, crear configuración reproducible, aplicar migraciones, completar pipeline automatizado y registrar URLs/evidencias. |

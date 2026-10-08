@@ -6,7 +6,7 @@ import { HealthModule } from './health/health.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ProductsModule } from './products/module/products.module';
- 
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -23,4 +23,3 @@ import { ProductsModule } from './products/module/products.module';
   ],
 })
 export class AppModule {}
- 

@@ -1,6 +1,6 @@
 # Especificación 006 — catálogo de productos
 
-Fecha: 2026-10-08. Estado: implementado y verificado localmente; el commit, el push y el CI remoto se registran después. Los contratos se contrastaron con la entidad `Product` (restricciones `products_sku_format`, `products_name_nonempty`, `products_stock_nonnegative`) y con los SKU del seed (`INV-001` a `INV-003`, que cumplen el formato).
+Fecha: 2026-10-08. Estado: catálogo aportado en `8699a2b` y `1d15709`; corrección autorizada/verificada localmente en `feature-products`. 341 pruebas pasan y cobertura supera 80%; publicación/CI de la corrección se comprueban después. Los contratos se contrastaron con la entidad `Product` (restricciones `products_sku_format`, `products_name_nonempty`, `products_stock_nonnegative`) y con los SKU del seed (`INV-001` a `INV-003`, que cumplen el formato).
 
 ## Alcance y trazabilidad
 
