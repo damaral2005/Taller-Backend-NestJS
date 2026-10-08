@@ -6,7 +6,7 @@ import {
   withDataSource,
 } from '../../src/database/commands';
 import { seedCredentials } from '../../src/seed/credentials';
-import { Product } from '../../src/products/entities/product.entity';
+import { Product } from '../../src/products/entities/products.entity';
 import { User } from '../../src/users/entities/user.entity';
 import { StockMovement } from '../../src/movements/entities/stock-movement.entity';
 import { runSeed } from '../../src/seed/seed';

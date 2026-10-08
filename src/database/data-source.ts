@@ -1,7 +1,7 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { DatabaseEnvironment } from './database.config';
 import { InitialInventory1791244800000 } from './migrations/1791244800000-initial-inventory';
-import { Product } from '../products/entities/product.entity';
+import { Product } from '../products/entities/products.entity';
 import { StockMovement } from '../movements/entities/stock-movement.entity';
 import { User } from '../users/entities/user.entity';
 import { AuthProof } from '../auth/entities/auth-proof.entity';

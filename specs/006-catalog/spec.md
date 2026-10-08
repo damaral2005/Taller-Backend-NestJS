@@ -1,6 +1,6 @@
 # Especificación 006 — catálogo de productos
 
-Fecha: 2026-10-07. Estado: BORRADOR para revisión del grupo; no hay código. Los puntos técnicos se contrastaron con la entidad `Product` (constraints `products_sku_format`, `products_name_nonempty`, `products_stock_nonnegative`). Queda por confirmar solo el formato de los SKU del seed.
+Fecha: 2026-10-08. Estado: implementado y verificado localmente; el commit, el push y el CI remoto se registran después. Los contratos se contrastaron con la entidad `Product` (restricciones `products_sku_format`, `products_name_nonempty`, `products_stock_nonnegative`) y con los SKU del seed (`INV-001` a `INV-003`, que cumplen el formato).
 
 ## Alcance y trazabilidad
 
@@ -10,19 +10,19 @@ Avanzar R-06 (funcionalidades) con las rutas reales de catálogo: HU-05 y HU-07 
 
 Todas las rutas requieren `AuthGuard`. Sesión ausente/incorrecta/revocada/vencida: 401. Un token de enrolamiento tampoco permite acceder.
 
-| Método y ruta              | Acceso                | Entrada                                    | Respuesta exitosa                        |
-| -------------------------- | --------------------- | ------------------------------------------ | ---------------------------------------- |
-| POST /products             | Admin (403 operador)  | JSON `{sku,name,description?}`             | 201 producto con stock 0                 |
-| GET /products              | Admin u operador      | Query opcional `page,limit,search,active`  | 200 `{data,page,limit,total,totalPages}` |
-| GET /products/:id          | Admin u operador      | UUID v4                                    | 200 producto                             |
-| PATCH /products/:id        | Admin (403 operador)  | UUID v4 y JSON `{name?,description?}`      | 200 producto actualizado                 |
-| PATCH /products/:id/status | Admin (403 operador)  | UUID v4 y JSON `{active}` booleano         | 200 producto actualizado                 |
+| Método y ruta              | Acceso               | Entrada                                   | Respuesta exitosa                        |
+| -------------------------- | -------------------- | ----------------------------------------- | ---------------------------------------- |
+| POST /products             | Admin (403 operador) | JSON `{sku,name,description?}`            | 201 producto con stock 0                 |
+| GET /products              | Admin u operador     | Query opcional `page,limit,search,active` | 200 `{data,page,limit,total,totalPages}` |
+| GET /products/:id          | Admin u operador     | UUID v4                                   | 200 producto                             |
+| PATCH /products/:id        | Admin (403 operador) | UUID v4 y JSON `{name?,description?}`     | 200 producto actualizado                 |
+| PATCH /products/:id/status | Admin (403 operador) | UUID v4 y JSON `{active}` booleano        | 200 producto actualizado                 |
 
 Producto expuesto: exactamente `{id,sku,name,description,active,stock,createdAt,updatedAt}`, con los mismos nombres de la entidad. `description` es `null` si no existe; fechas ISO-8601.
 
 ## Validaciones
 
-- `sku`: obligatorio, canónico y sin transformación automática, regex `^[A-Z0-9][A-Z0-9._-]{0,47}$` (1–48 caracteres: mayúsculas, dígitos y `._-`), idéntica al CHECK `products_sku_format` y a `varchar(48)`. La API valida la misma regla para devolver 400 en vez de un error de BD. **[CONFIRMAR]** solo que los SKU del seed cumplen este formato. Si el grupo prefiere normalizar (minúsculas → mayúsculas), se decide antes de codificar.
+- `sku`: obligatorio, canónico y sin transformación automática, regex `^[A-Z0-9][A-Z0-9._-]{0,47}$` (1–48 caracteres: mayúsculas, dígitos y `._-`), idéntica al CHECK `products_sku_format` y a `varchar(48)`. La API valida la misma regla para devolver 400 en vez de un error de BD. Los SKU del seed cumplen este formato. Decisión D-32: no se normaliza; un SKU en minúsculas recibe 400.
 - `name`: obligatorio, string de 1–120 caracteres (`varchar(120)`) con al menos un carácter que no sea espacio, como exige `products_name_nonempty`. `description`: opcional, string de 1–500 caracteres; en PATCH, `null` la elimina. El límite de 500 es una decisión de la API: la columna es `text` sin tope en BD.
 - El SKU es inmutable: PATCH no lo acepta. Cualquier campo extra (`sku`, `stock`, `active`, `id`, fechas) → 400. PATCH `/products/:id` con body vacío → 400.
 - `/status`: `active` obligatorio y booleano estricto (no strings ni números).

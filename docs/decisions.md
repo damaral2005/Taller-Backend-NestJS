@@ -54,3 +54,12 @@ Decisiones del commit 5:
 - D-28: no degradar último admin registrado ni único admin con TOTP activo. Un admin pendiente no permite perder al último admin capaz de autenticarse. Rol idéntico no cambia timestamps; cambios conservan hash/factor/historial.
 - D-29: escrituras administrativas serializadas con bloqueo asesor transaccional `(721005,1)`; listado con variante compartida. Revalidar actor/sesión después del bloqueo y bloquear después la fila destino. Así se protege la política entre instancias y peticiones en espera.
 - D-30: mantener todas las suites/fuentes con detección de enlaces de Jest para archivos sincronizados por OneDrive; Watchman desactivado. Nuevos tests HTTP mantienen un listener efímero durante cada caso y verifican esperas reales con pg_locks.
+
+Decisiones del commit 6:
+
+- D-31: catálogo con cinco rutas en `/products`. Lectura para cualquier usuario autenticado; creación, edición y cambio de estado solo para admin, declarado por ruta con `Roles`. Sin migración ni dependencias nuevas: la tabla `products` y sus restricciones ya existen.
+- D-32: SKU canónico sin transformación automática, con la misma expresión que el CHECK `products_sku_format` (`^[A-Z0-9][A-Z0-9._-]{0,47}$`, 1–48 caracteres) e inmutable. Nombre de 1–120 caracteres con algún carácter visible. Descripción de 1–500 caracteres: el límite es de la API, porque la columna es `text`. Se rechaza el carácter NUL con `400` en lugar de dejar que PostgreSQL produzca un `500`.
+- D-33: la unicidad del SKU la garantiza PostgreSQL. Solo la violación de `products_sku_key` se convierte en `409` sin detalles de SQL; cualquier otro error se propaga sin enmascararse.
+- D-34: editar y cambiar estado ocurren en una transacción que bloquea la fila del producto, compara y escribe únicamente las columnas de catálogo que cambian. Nunca se escribe `stock` (RN-02) y, si no hay diferencias, no se ejecuta el UPDATE, de modo que `updatedAt` no cambia. Un saldo confirmado por otra transacción no se pisa.
+- D-35: la paginación pasa a `src/common/pagination.ts` y se comparte con usuarios sin cambiar su contrato. El listado ordena por SKU e ID, incluye inactivos salvo `active=true`, y `search` usa `ILIKE` sobre SKU y nombre con `%`, `_` y `\` escapados.
+- D-36: el spec se renombró a `specs/006-catalog`. Rechazar movimientos sobre productos inactivos (RN-05) y escribir `stock` se resuelven en el incremento de movimientos.

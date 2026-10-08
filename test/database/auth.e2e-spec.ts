@@ -22,7 +22,7 @@ import { enrollFromEnvironment } from '../../src/auth/enroll';
 import { AuthProof } from '../../src/auth/entities/auth-proof.entity';
 import { Session } from '../../src/auth/entities/session.entity';
 import { User } from '../../src/users/entities/user.entity';
-import { Product } from '../../src/products/entities/product.entity';
+import { Product } from '../../src/products/entities/products.entity';
 import { hashPassword } from '../../src/seed/password';
 import {
   createTestDatabase,

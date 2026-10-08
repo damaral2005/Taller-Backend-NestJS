@@ -1,5 +1,6 @@
 import { IsIn, IsOptional, IsString, Length, Matches } from 'class-validator';
 import { UserRole } from './entities/user.entity';
+import { PaginationQueryDto } from '../common/pagination';
 
 export class CreateUserDto {
   @IsString()
@@ -19,14 +20,4 @@ export class ChangeRoleDto {
   role!: UserRole;
 }
 
-export class ListUsersDto {
-  @IsOptional()
-  @IsString()
-  @Matches(/^(?:[1-9]\d{0,3}|10000)$/)
-  page?: string;
-
-  @IsOptional()
-  @IsString()
-  @Matches(/^(?:[1-9]|[1-9]\d|100)$/)
-  limit?: string;
-}
+export class ListUsersDto extends PaginationQueryDto {}

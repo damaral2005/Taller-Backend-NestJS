@@ -5,7 +5,8 @@ import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-
+import { ProductsModule } from './products/module/products.module';
+ 
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -18,6 +19,8 @@ import { UsersModule } from './users/users.module';
     HealthModule,
     AuthModule,
     UsersModule,
+    ProductsModule,
   ],
 })
 export class AppModule {}
+ 
