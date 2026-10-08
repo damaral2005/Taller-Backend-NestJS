@@ -1,6 +1,6 @@
 # Plan 001 — implementación incremental
 
-Fecha: actualización 2026-10-08. Estado: incrementos 001 a 005 publicados; CI de 005 exitoso. Catálogo aportado por el grupo en `feature-products` (`8699a2b`, `1d15709`); usuario autoriza corregir, verificar y publicar un commit en esa rama antes del recorrido manual.
+Fecha: actualización 2026-10-08. Estado: incrementos 001 a 006 publicados/verificados, CI de catálogo exitoso y recorrido manual confirmado por usuario. Incremento 007 autorizado con commit/push en codex/feature-movements desde 815c649; integrar catálogo antes o junto con movimientos.
 
 ## Arquitectura prevista
 
@@ -80,12 +80,15 @@ Aceptación: rutas reales con `401`/`403`, DTOs/duplicados/paginación, cambio v
 
 Contratos en `specs/006-catalog`: cinco rutas de productos, lectura autenticada, escritura exclusiva para admin, filtros/paginación y SKU inmutable. Reutiliza tabla y guards existentes; editar catálogo nunca escribe stock. El grupo publicó especificación e implementación en dos commits. La revisión detectó imports inválidos, formato y cierre documental incompleto; el usuario autoriza corregirlos manteniendo contratos y verificar PostgreSQL/CI antes de publicar resultados. Plan y tareas específicos registran la corrección; `docs/commits/006.md` contiene las mediciones y `docs/catalog-manual.md` guía las peticiones.
 
+## Incremento 007 — movimientos de inventario
+
+Especificación previa al código en `specs/007-movements`: POST/GET de movimientos para admin/operador. Cantidad entera positiva, motivo auditado, responsable de sesión, producto activo y saldo protegido ante concurrencia. Transacción con bloqueo de fila, revalidación de sesión tras esperar y rollback conjunto de stock/registro. Historial paginado con filtros y proyección segura. Reutiliza esquema/guards/paginación; sin dependencias nuevas ni migración. Supertest/PostgreSQL verifica fallos, límites, espera/rollback y persistencia; guía manual y overview registran evidencias. R-06 permanece parcial hasta Postman.
+
 ## Incrementos posteriores
 
 | Incremento   | Alcance y evidencias                                                                                                                  |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
 | Recuperación | Definir y probar recuperación de 2FA con identidad verificada, sin bypass por contraseña.                                             |
-| Movimientos  | Entradas/salidas transaccionales, consulta del historial y pruebas de concurrencia y rollback.                                        |
 | Entrega      | Postman, informe, README completo, cobertura final y trazabilidad de todos los criterios.                                             |
 | Despliegue   | Elegir proveedor, crear configuración reproducible, aplicar migraciones, completar pipeline automatizado y registrar URLs/evidencias. |
 

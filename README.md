@@ -6,9 +6,9 @@ Repositorio: [Taller-Backend-NestJS](https://github.com/damaral2005/Taller-Backe
 
 ## Estado actual
 
-Los commits 1 y 2 establecen el SDD y la base NestJS. El commit 3 incorpora PostgreSQL y seed; el 4 añade JWT/TOTP y sesiones revocables. El incremento 5 implementa administración de usuarios y roles con protección del último admin. El incremento 006 añade catálogo de productos en `feature-products`; su corrección y verificaciones se registran en el overview. **Movimientos, Postman y despliegue siguen pendientes.**
+Los commits 1 y 2 establecen el SDD y la base NestJS. El commit 3 incorpora PostgreSQL y seed; el 4 añade JWT/TOTP y sesiones revocables. El incremento 5 implementa administración de usuarios y roles. El 006 añade catálogo verificado en `feature-products`; el 007 incorpora movimientos en `codex/feature-movements`, basada en `815c649`. **Postman, informe final y despliegue siguen pendientes.** Integrar catálogo antes o junto con movimientos; este incremento no hace merge en main.
 
-El código incluye health, seis rutas de autenticación, tres rutas administrativas de usuarios y cinco rutas de catálogo. Los contratos de movimientos de la especificación 001 representan funcionalidades futuras.
+El código incluye health, seis rutas de autenticación, tres rutas administrativas de usuarios, cinco rutas de catálogo y dos rutas de movimientos.
 
 La carpeta `2026-2-nestjs-postgres` se utiliza como referencia del curso. El desarrollo propio se realiza en `Taller Backend – NestJS`; no se modifica el ejemplo ni se copia su historial.
 
@@ -30,6 +30,8 @@ La carpeta `2026-2-nestjs-postgres` se utiliza como referencia del curso. El des
 - [Especificación del catálogo](specs/006-catalog/spec.md), [plan](specs/006-catalog/plan.md) y [tareas](specs/006-catalog/tasks.md).
 - [Overview del catálogo y su corrección](docs/commits/006.md).
 - [Recorrido manual del catálogo con PowerShell y explicación del código](docs/catalog-manual.md).
+- [Especificación de movimientos](specs/007-movements/spec.md), [plan](specs/007-movements/plan.md) y [tareas](specs/007-movements/tasks.md).
+- [Overview del incremento 007](docs/commits/007.md) y [recorrido manual de entradas, salidas e historial](docs/movements-manual.md).
 - [Guía para colaborar con Spec-Driven Design](docs/CONTRIBUTING.md).
 
 ## Flujo de trabajo por commit
@@ -53,8 +55,9 @@ Los cambios de alcance se registran; una tarea pendiente no se presenta como com
 | 4      | JWT, enrolamiento TOTP, sesiones revocables y guards                 | Ver resultados y estado en el [overview](docs/commits/004.md) |
 | 5      | Crear/listar usuarios, asignar roles y proteger al último admin      | Ver resultados y estado en el [overview](docs/commits/005.md) |
 | 006    | Crear/consultar/editar productos, filtros y activación/desactivación | Ver resultados y estado en el [overview](docs/commits/006.md) |
+| 007    | Entradas/salidas, saldo transaccional e historial auditado           | Ver resultados y estado en el [overview](docs/commits/007.md) |
 
-Movimientos de inventario, colección Postman, informe y despliegue se desarrollarán en incrementos posteriores. Estos incrementos no completan la entrega.
+Colección Postman, informe y despliegue se desarrollarán en incrementos posteriores. Estos incrementos no completan la entrega.
 
 ## Requisitos y ejecución
 
@@ -229,7 +232,22 @@ Respuesta de producto: `id`, `sku`, `name`, `description`, `active`, `stock`, `c
 
 El listado ordena por SKU e ID, con defaults page 1 y limit 20. `search` busca parcialmente en SKU/nombre sin distinguir mayúsculas y trata `%`, `_` y `\` como texto literal. `active` admite los strings `true` y `false`; por defecto aparecen ambos estados. Desactivar conserva saldo e historial. Repetir una edición/estado idéntico no cambia `updatedAt`. Las actualizaciones bloquean la fila en una transacción y escriben únicamente campos de catálogo; nunca cambian stock. No se necesitan migraciones nuevas.
 
-Sigue la [guía manual](docs/catalog-manual.md) para obtener una sesión nueva y probar cada ruta y error. Los movimientos se implementarán en el siguiente incremento.
+Sigue la [guía manual](docs/catalog-manual.md) para obtener una sesión nueva y probar cada ruta y error. Los movimientos del incremento 007 se describen a continuación.
+
+## Movimientos de inventario
+
+Ambas rutas requieren JWT de una sesión vigente, admiten admin/operador y usan el prefijo `/api/v1`:
+
+| Ruta              | Entrada                                    | Respuesta                                   |
+| ----------------- | ------------------------------------------ | ------------------------------------------- |
+| `POST /movements` | JSON `{productId,type,quantity,reason}`    | `201`: `{movement,stock}`                   |
+| `GET /movements`  | Query opcional `page,limit,productId,type` | `200`: `{data,page,limit,total,totalPages}` |
+
+UUID v4, tipo `IN`/`OUT`, cantidad numérica entera de 1 a 2147483647, motivo de 1–300 caracteres visibles sin NUL. Campos extra/valores inválidos → `400`; producto inexistente → `404`; inactivo, saldo insuficiente u overflow de stock → `409`. Ningún rechazo cambia stock/historial. Creación bloquea la fila en una transacción, revalida la sesión tras esperar y actualiza stock junto con el registro auditado; si falla uno, se revierten ambos.
+
+Movimiento público: `id`, `productId`, `type`, `quantity`, `reason`, `user:{id,username}` y `createdAt`. Responsable tomado de la sesión, sin aceptar userId del cliente. Historial incluye productos inactivos y seed, ordena por fecha e ID descendentes, usa paginación 1/20 por defecto y combina filtros por producto/tipo. Conteo y página se leen bajo REPEATABLE READ. POST devuelve el saldo de esa operación, que puede cambiar posteriormente.
+
+No hay edición/eliminación ni idempotencia de POST: repetir una petición válida crea otro movimiento. Consulta historial antes de reintentar una respuesta incierta. Todas las respuestas de movimientos llevan no-store. No hacen falta migraciones ni dependencias nuevas. Sigue [la guía manual](docs/movements-manual.md) para probar entrada 10, salida 4, saldo 6, rechazos, desactivación y operador.
 
 ## Pruebas y verificaciones
 
@@ -260,7 +278,7 @@ La cobertura incluye todos los archivos de `src` salvo tests y se exige en líne
 
 Las pruebas HTTP cierran sus servidores al terminar y usan puertos efímeros para verificar el listener. El controlador de validación existe únicamente en `test/` y no se distribuye con la API.
 
-Los scripts habilitan las VM de módulos de Node para cargar las dependencias ESM de NestJS 12 y desactivan Watchman por CLI. Haste sigue los enlaces para incluir también los archivos que OneDrive anuncia como reparse points; no es necesario añadir flags manualmente. En la corrección de 006 pasan **341 pruebas en 15 suites**, con **98,89% de cobertura de líneas** y las cuatro métricas por encima del 80% sobre 45 archivos fuente. El [overview](docs/commits/006.md) registra resultados y límites. Para ejecutar solo catálogo: `npm test -- --runTestsByPath test/unit/products-contract.spec.ts` y `npm run test:e2e -- --runTestsByPath test/database/products.e2e-spec.ts` (con PostgreSQL de pruebas iniciado).
+Los scripts habilitan las VM de módulos de Node para cargar las dependencias ESM de NestJS 12 y desactivan Watchman por CLI. Haste sigue los enlaces para incluir también los archivos que OneDrive anuncia como reparse points; no es necesario añadir flags manualmente. En 007 pasan **439 pruebas en 17 suites**, con **98,98% de cobertura de líneas** y las cuatro métricas por encima del 80% sobre 50 archivos fuente. El [overview](docs/commits/007.md) registra resultados y límites. Para ejecutar solo movimientos: `npm test -- --runTestsByPath test/unit/movements-contract.spec.ts` y `npm run test:e2e -- --runTestsByPath test/database/movements.e2e-spec.ts` (con PostgreSQL de pruebas iniciado). Los comandos de catálogo permanecen en su guía.
 
 ## Integración continua
 
@@ -276,7 +294,7 @@ src/
   users/                  # Entidad, administración y roles
   products/               # Catálogo: DTOs, controller, module, services, entidad y proyección
   common/pagination.ts    # Contrato de paginación compartido
-  movements/entities/     # Historial con usuario y producto
+  movements/              # Entradas/salidas transaccionales, historial y entidad
   seed/                   # Credenciales, hash y carga transaccional
   auth/                   # Enrolamiento, TOTP, JWT, sesiones y guards
   health/                 # Endpoint público de salud
@@ -290,7 +308,7 @@ docs/                     # Decisiones y overview por commit
 .github/workflows/ci.yml   # Checks automatizados
 ```
 
-La siguiente fase implementará movimientos con su propia especificación antes del código. Consulta la [guía del grupo](docs/CONTRIBUTING.md) para preparar tu incremento.
+La siguiente fase completará colección Postman e informe, seguida por despliegue. Consulta la [guía del grupo](docs/CONTRIBUTING.md) para preparar tu incremento.
 
 ## Entrega final pendiente
 

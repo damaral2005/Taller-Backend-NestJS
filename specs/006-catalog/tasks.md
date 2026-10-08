@@ -8,7 +8,7 @@
 - [x] P-T06: format, lint, tipos, build y 341 pruebas en 15 suites pasan tras corregir imports; cobertura de 45 archivos >=80% en las cuatro métricas. Smoke compilado verifica health y cinco rutas protegidas. Evidencia en `docs/commits/006.md`.
 - [x] P-T07: README, decisiones, tareas, trazabilidad, guía manual y overview actualizados con mediciones locales reproducibles.
 - [x] P-T08: commits `8699a2b` y `1d15709` publicados por su autor en `feature-products`; usuario autoriza corrección y push el 2026-10-08.
-- [ ] P-T09: CI remoto verificado; evidencia en el cierre.
-- [ ] P-T10: overview presentado y revisado antes del siguiente incremento.
+- [x] P-T09: corrección `815c649` publicada; CI success en run 37845481553.
+- [x] P-T10: overview presentado; usuario confirma recorrido manual completo y autoriza movimientos.
 
 Corrección: imports, formato y plantilla `.env.example`; contratos de catálogo sin cambios. La revisión inicial encontró CI fallido en formato y TypeScript/Jest bloqueados antes de ejecutar los casos. Los resultados anteriores se sustituyen por mediciones de la corrección. Commit/push y CI posteriores se informan en el cierre y se incorporan documentalmente en el siguiente incremento.

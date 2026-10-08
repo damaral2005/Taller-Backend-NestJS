@@ -114,7 +114,7 @@ Invoke-RestMethod "$base/products?active=false&search=$sku" -Headers $adminHeade
 Invoke-RestMethod -Method Patch "$base/products/$($product.id)/status" -Headers $adminHeaders -ContentType 'application/json' -Body '{"active":true}'
 ```
 
-Respuestas 200, comparación `True`, producto presente entre inactivos antes de reactivarlo. Se conserva stock e historial. No hay eliminación física ni edición del SKU; los movimientos todavía están pendientes.
+Respuestas 200, comparación `True`, producto presente entre inactivos antes de reactivarlo. Se conserva stock e historial. No hay eliminación física ni edición del SKU; los movimientos se prueban en [la guía del incremento 007](movements-manual.md).
 
 ## 8. Errores esperados
 

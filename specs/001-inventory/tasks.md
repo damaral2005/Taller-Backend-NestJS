@@ -61,16 +61,25 @@ Fecha: actualización 2026-10-08. Una marca completada corresponde a trabajo ver
 - [x] C6-02: revisión identifica imports inválidos, fallo de formato/CI y discrepancias documentales; usuario autoriza corrección y push.
 - [x] C6-03: corregir imports conservando subcarpetas y contratos, restaurar `.env.example` y completar recorrido manual.
 - [x] C6-04: 341 pruebas en 15 suites, cobertura >=80%, lint/tipos/build/formato y smoke compilado; resultados medidos en `docs/commits/006.md`.
-- [ ] C6-05: commit/push de corrección y CI remoto; evidencia después de publicar.
-- [ ] C6-06: presentar overview y guiar pruebas manuales antes de movimientos.
+- [x] C6-05: `815c649` publicado en feature-products; CI success en run 37845481553.
+- [x] C6-06: overview/guía presentados; usuario confirma recorrido manual completo y autoriza 007.
+
+## Incremento 007 — movimientos
+
+- [x] C7-01: usuario autoriza siguiente commit y push; rama codex/feature-movements desde catálogo verificado, contratos previos en specs/007-movements.
+- [x] C7-02: módulo/DTOs/rutas/proyección e implementación transaccional de stock/historial.
+- [x] C7-03: 439 pruebas/17 suites y cobertura >=80%; rollback, concurrencia, esperas y regresiones completas.
+- [x] C7-04: lint/tipos/build y smoke compilado correctos; README/SDD/guía/overview actualizados y formato verificado al cierre.
+- [ ] C7-05: registrar commit, publicar rama y comprobar CI; evidencia posterior en cierre y próximo incremento.
+- [ ] C7-06: presentar overview antes de Postman/informe/despliegue.
 
 ## Entrega completa — seguimiento
 
 - [x] F-01: autenticación JWT, enrolamiento y verificación TOTP, sesiones y logout revocable implementados/verificados en 004.
 - [x] F-02: administración/roles y `401`/`403` verificados en 005; aplicar los mismos guards a inventario al crear esas rutas.
 - [x] F-03: catálogo y consulta de existencias con validaciones, filtros, paginación y permisos verificados en 006. Cambiar existencias mediante movimientos sigue en F-04.
-- [ ] F-04: movimientos auditables, atomicidad y control de concurrencia.
-- [ ] F-05: cobertura global mínima del 80% y pruebas HTTP sobre PostgreSQL real.
+- [x] F-04: entradas/salidas auditadas, atomicidad y concurrencia verificadas en 007.
+- [x] F-05: 439 pruebas/17 suites y cobertura >=80% de las 50 fuentes con HTTP/PostgreSQL real en 007; mantener umbral en siguientes cambios y verificar CI tras push.
 - [ ] F-06: colección y entorno Postman utilizables sin secretos reales.
 - [ ] F-07: README reproducible e informe detallado con ejecución de pruebas.
 - [ ] F-08: despliegue en nube, pipeline automatizado, URLs y evidencias.
