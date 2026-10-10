@@ -11,12 +11,10 @@ import {
   EntityManager,
   IsNull,
   MoreThan,
-  Not,
   QueryFailedError,
 } from 'typeorm';
 import { Identity } from '../auth/auth.service';
 import { Session } from '../auth/entities/session.entity';
-import { issueEnrollmentInTransaction } from '../auth/enrollment';
 import { hashPassword } from '../seed/password';
 import { User, UserRole } from './entities/user.entity';
 import { CreateUserDto, ListUsersDto } from './users.dto';
@@ -53,21 +51,14 @@ export class UsersService {
     });
   }
 
-  async create(
-    actor: Identity,
-    input: CreateUserDto,
-  ): Promise<{ user: UserView; enrollmentToken: string; expiresIn: number }> {
+  async create(actor: Identity, input: CreateUserDto): Promise<UserView> {
     const passwordHash = await hashPassword(input.password);
     try {
       return await this.adminTransaction(actor, 'write', async (manager) => {
         const user = await manager
           .getRepository(User)
           .save({ username: input.username, role: input.role, passwordHash });
-        const enrollment = await issueEnrollmentInTransaction(
-          manager,
-          user.username,
-        );
-        return { user: userView(user), ...enrollment };
+        return userView(user);
       });
     } catch (error) {
       if (error instanceof QueryFailedError) {
@@ -127,7 +118,6 @@ export class UsersService {
       const repository = manager.getRepository(User);
       const user = await repository
         .createQueryBuilder('user')
-        .addSelect('user.totpSecret')
         .where('user.id = :id', { id })
         .setLock('pessimistic_write')
         .getOne();
@@ -137,16 +127,6 @@ export class UsersService {
         if ((await repository.countBy({ role: 'admin' })) <= 1)
           throw new ConflictException(
             'No se puede degradar al último administrador.',
-          );
-        if (
-          user.totpSecret &&
-          (await repository.countBy({
-            role: 'admin',
-            totpSecret: Not(IsNull()),
-          })) <= 1
-        )
-          throw new ConflictException(
-            'No se puede degradar al último administrador con 2FA activo.',
           );
       }
       await repository.update({ id }, { role });

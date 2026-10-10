@@ -55,11 +55,31 @@ Fecha: actualización 2026-10-07. Una marca completada corresponde a trabajo ver
 - [ ] C5-06: push y CI posteriores al commit; evidencia en cierre y próximo incremento.
 - [ ] C5-07: presentar overview y avance; revisión antes del siguiente incremento.
 
+## Commit 6 — catálogo de productos
+
+- [x] C6-01: contratos y políticas en `specs/006-catalog` antes del código; decisiones D-31 a D-36.
+- [x] C6-02: cinco rutas de catálogo con guards, proyección explícita y errores sin detalles de SQL.
+- [x] C6-03: edición/estado con bloqueo de fila, sin escribir `stock` ni modificar `updatedAt` sin cambios; SKU duplicado concurrente.
+- [x] C6-04: 341 pruebas en 15 suites (157 nuevas) con PostgreSQL real y cobertura >=80% en las cuatro métricas; smoke compilado correcto.
+- [x] C6-05: README, trazabilidad, decisiones, tareas y overview actualizados.
+- [ ] C6-06: commit con identidad real, push y CI posteriores; evidencia en el cierre.
+- [ ] C6-07: presentar overview y avance; revisión antes del siguiente incremento.
+
+## Commit 7 — retiro del 2FA
+
+- [x] C7-01: contratos y decisiones D-37 a D-40 en `specs/007-jwt-only-auth` antes del código.
+- [x] C7-02: login directo con JWT y sesión; rutas 2FA retiradas; migración incremental y entidades sin TOTP.
+- [x] C7-03: creación de usuarios sin enrolamiento y último admin simplificado; script, cifrado y `otpauth` eliminados.
+- [x] C7-04: 341 pruebas en 15 suites con PostgreSQL real y cobertura >=80% en las cuatro métricas; smoke compilado correcto.
+- [x] C7-05: README, trazabilidad, decisiones, tareas y overview actualizados.
+- [ ] C7-06: commit con identidad real, push y CI posteriores; evidencia en el cierre.
+- [ ] C7-07: presentar overview y avance; revisión antes del siguiente incremento.
+
 ## Entrega completa — seguimiento
 
-- [x] F-01: autenticación JWT, enrolamiento y verificación TOTP, sesiones y logout revocable implementados/verificados en 004.
+- [x] F-01: autenticación JWT con sesiones y logout revocable (004); segundo factor retirado en 007.
 - [x] F-02: administración/roles y `401`/`403` verificados en 005; aplicar los mismos guards a inventario al crear esas rutas.
-- [ ] F-03: catálogo y existencias con validaciones y paginación.
+- [x] F-03: catálogo y existencias de solo lectura con validaciones, filtros y paginación, verificados en 006.
 - [ ] F-04: movimientos auditables, atomicidad y control de concurrencia.
 - [ ] F-05: cobertura global mínima del 80% y pruebas HTTP sobre PostgreSQL real.
 - [ ] F-06: colección y entorno Postman utilizables sin secretos reales.

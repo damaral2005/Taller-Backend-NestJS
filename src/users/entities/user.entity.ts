@@ -25,17 +25,6 @@ export class User {
   @Column({ type: 'varchar', length: 16, default: 'operador' })
   role!: UserRole;
 
-  @Column({ name: 'totp_secret', type: 'text', nullable: true, select: false })
-  totpSecret!: string | null;
-
-  @Column({
-    name: 'last_totp_counter',
-    type: 'integer',
-    nullable: true,
-    select: false,
-  })
-  lastTotpCounter!: number | null;
-
   @Column({
     name: 'login_failures',
     type: 'integer',
@@ -51,17 +40,6 @@ export class User {
     select: false,
   })
   blockedUntil!: Date | null;
-
-  @Column({ name: 'totp_failures', type: 'integer', default: 0, select: false })
-  totpFailures!: number;
-
-  @Column({
-    name: 'totp_blocked_until',
-    type: 'timestamptz',
-    nullable: true,
-    select: false,
-  })
-  totpBlockedUntil!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;

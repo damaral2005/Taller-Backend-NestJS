@@ -25,13 +25,9 @@ describe('Contratos y proyección de usuarios', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       passwordHash: 'hidden-password-hash',
-      totpSecret: 'hidden-secret',
-      lastTotpCounter: 42,
       loginFailures: 3,
       blockedUntil: new Date(),
-      totpFailures: 2,
-      totpBlockedUntil: new Date(),
-      enrollmentToken: 'unexpected-sensitive-property',
+      internalNote: 'unexpected-sensitive-property',
     });
     const response = userView(user);
     expect(Object.keys(response).sort()).toEqual([
@@ -42,7 +38,7 @@ describe('Contratos y proyección de usuarios', () => {
       'username',
     ]);
     expect(JSON.stringify(response)).not.toMatch(
-      /hidden|unexpected|Failures|Counter|blocked|Token/,
+      /hidden|unexpected|Failures|blocked|Note/,
     );
   });
 
@@ -72,7 +68,7 @@ describe('Contratos y proyección de usuarios', () => {
     { password: 'x'.repeat(11) },
     { password: 'x'.repeat(129) },
     { password: 123456789012 },
-    { totpSecret: 'injected' },
+    { passwordHash: 'injected' },
     { stock: 0 },
   ])('rechaza creación fuera del contrato %j', (changes) => {
     expect(

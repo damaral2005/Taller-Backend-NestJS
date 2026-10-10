@@ -76,12 +76,25 @@ Contratos, políticas y tareas previos al código en `specs/005-users/{spec,plan
 
 Aceptación: rutas reales con `401`/`403`, DTOs/duplicados/paginación, cambio vigente de permisos, concurrencia/rollback y cuenta/sesión modificadas mientras esperan. Pruebas Jest/Supertest/PostgreSQL y todas las métricas >=80%; documentación y overview antes del commit; push y CI después. R-03 queda completo solo tras verificar estos criterios.
 
+## Commit 6 — catálogo de productos
+
+Mensaje previsto: `feat: add product catalog endpoints`.
+
+Contratos, validaciones, concurrencia y criterios P-01 a P-09 previos al código en `specs/006-catalog/{spec,plan,tasks}.md`. Cinco rutas `/products` (lectura para usuarios autenticados, escritura solo admin), SKU canónico e inmutable, saldo de solo lectura, edición con bloqueo de fila sin escribir `stock`. Sin migración ni dependencias nuevas. Resultados y límites en `docs/commits/006.md`.
+
+Aceptación: rutas reales con `401`/`403`, DTOs, SKU duplicado (secuencial y concurrente), filtros y paginación, idempotencia y saldo intacto; pruebas Jest/Supertest/PostgreSQL y las cuatro métricas >=80%. R-06 queda parcial hasta tener movimientos y Postman.
+
+## Commit 7 — retiro del 2FA
+
+Mensaje previsto: `fix: remove two-factor authentication and keep JWT-only login`.
+
+Contratos, decisiones y criterios J-01 a J-11 previos al código en `specs/007-jwt-only-auth/{spec,plan,tasks}.md`. Login directo con sesión y JWT, rutas 2FA retiradas, migración incremental que elimina estructura TOTP, creación de usuarios sin enrolamiento y regla de último admin simplificada. Resultados y límites en `docs/commits/007.md`.
+
 ## Incrementos posteriores
 
 | Incremento   | Alcance y evidencias                                                                                                                  |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
 | Recuperación | Definir y probar recuperación de 2FA con identidad verificada, sin bypass por contraseña.                                             |
-| Catálogo     | Productos, validaciones, filtros, paginación, SKU único y desactivación.                                                              |
 | Movimientos  | Entradas/salidas transaccionales, consulta del historial y pruebas de concurrencia y rollback.                                        |
 | Entrega      | Postman, informe, README completo, cobertura final y trazabilidad de todos los criterios.                                             |
 | Despliegue   | Elegir proveedor, crear configuración reproducible, aplicar migraciones, completar pipeline automatizado y registrar URLs/evidencias. |

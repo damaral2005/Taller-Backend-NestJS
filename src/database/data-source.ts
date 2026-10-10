@@ -1,12 +1,12 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { DatabaseEnvironment } from './database.config';
 import { InitialInventory1791244800000 } from './migrations/1791244800000-initial-inventory';
-import { Product } from '../products/entities/products.entity';
+import { Product } from '../products/entities/product.entity';
 import { StockMovement } from '../movements/entities/stock-movement.entity';
 import { User } from '../users/entities/user.entity';
-import { AuthProof } from '../auth/entities/auth-proof.entity';
 import { Session } from '../auth/entities/session.entity';
 import { Authentication1791244801000 } from './migrations/1791244801000-authentication';
+import { RemoveTwoFactor1791244802000 } from './migrations/1791244802000-remove-two-factor';
 
 export function databaseOptions(
   config: DatabaseEnvironment,
@@ -20,8 +20,12 @@ export function databaseOptions(
     password: config.DB_PASSWORD,
     schema: config.DB_SCHEMA,
     ssl: config.DB_SSL ? { rejectUnauthorized: true } : false,
-    entities: [User, Product, StockMovement, AuthProof, Session],
-    migrations: [InitialInventory1791244800000, Authentication1791244801000],
+    entities: [User, Product, StockMovement, Session],
+    migrations: [
+      InitialInventory1791244800000,
+      Authentication1791244801000,
+      RemoveTwoFactor1791244802000,
+    ],
     migrationsTableName: 'schema_migrations',
     migrationsTransactionMode: 'all',
     synchronize: false,

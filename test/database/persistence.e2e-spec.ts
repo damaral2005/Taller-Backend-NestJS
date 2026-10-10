@@ -4,7 +4,7 @@ import { AddressInfo } from 'node:net';
 import { createDataSource } from '../../src/database/data-source';
 import { executeMigration, withDataSource } from '../../src/database/commands';
 import { migrateFromEnvironment } from '../../src/database/migrate';
-import { Product } from '../../src/products/entities/products.entity';
+import { Product } from '../../src/products/entities/product.entity';
 import { User } from '../../src/users/entities/user.entity';
 import { StockMovement } from '../../src/movements/entities/stock-movement.entity';
 import {
@@ -44,9 +44,9 @@ describe('PostgreSQL: migración, integridad y persistencia', () => {
     const rows = await context.source.query<{ total: number }[]>(
       `SELECT count(*)::int AS total FROM "${context.ownedSchema}"."schema_migrations"`,
     );
-    expect(rows[0].total).toBe(2);
-    await inTestEnvironment(context, () => migrateFromEnvironment('revert'));
-    await inTestEnvironment(context, () => migrateFromEnvironment('revert'));
+    expect(rows[0].total).toBe(3);
+    for (let revertido = 0; revertido < 3; revertido++)
+      await inTestEnvironment(context, () => migrateFromEnvironment('revert'));
     const tables = await context.source.query<{ table_name: string }[]>(
       'SELECT table_name FROM information_schema.tables WHERE table_schema=$1',
       [context.ownedSchema],

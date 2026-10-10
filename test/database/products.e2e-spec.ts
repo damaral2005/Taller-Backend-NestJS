@@ -8,7 +8,7 @@ import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { configureApplication } from '../../src/configure-app';
 import { Session } from '../../src/auth/entities/session.entity';
-import { Product } from '../../src/products/entities/products.entity';
+import { Product } from '../../src/products/entities/product.entity';
 import { StockMovement } from '../../src/movements/entities/stock-movement.entity';
 import { runSeed } from '../../src/seed/seed';
 import { hashPassword } from '../../src/seed/password';
@@ -147,7 +147,7 @@ describe('Catálogo de productos: HTTP con PostgreSQL real', () => {
   }
 
   describe('autenticación y permisos (P-01)', () => {
-    it('las cinco rutas devuelven 401 sin JWT, con JWT inválido o con credencial de enrolamiento', async () => {
+    it('las cinco rutas devuelven 401 sin JWT, con JWT inválido o con un JWT sin sesión válida', async () => {
       const product = await seedProduct('INV-001');
       const id = product.id;
       const anonymous = [
@@ -162,19 +162,19 @@ describe('Catálogo de productos: HTTP con PostgreSQL real', () => {
       for (const call of anonymous) await call.expect(401);
       await list('', 'a'.repeat(64)).expect(401);
       await detail(id, 'a'.repeat(64)).expect(401);
-      const created = await request(server)
-        .post('/api/v1/users')
-        .set('Authorization', bearer(adminToken))
-        .send({
-          username: 'nuevo_operador',
-          password: 'Integration-only-password',
-          role: 'operador',
-        })
-        .expect(201);
-      const enrollment = (created.body as { enrollmentToken: string })
-        .enrollmentToken;
-      await list('', enrollment).expect(401);
-      await create({ sku: 'INV-002', name: 'X' }, enrollment).expect(401);
+      // Tokens firmados con la clave correcta pero sin sesión válida o con otro propósito.
+      const jwt = app.get(JwtService);
+      const owner = await context.source
+        .getRepository(User)
+        .findOneByOrFail({ username: 'admin' });
+      for (const claims of [
+        { sub: owner.id, sid: randomUUID(), typ: 'access' },
+        { sub: owner.id, sid: randomUUID(), typ: 'refresh' },
+      ]) {
+        const forged = await jwt.signAsync(claims);
+        await list('', forged).expect(401);
+        await create({ sku: 'INV-002', name: 'X' }, forged).expect(401);
+      }
       expect(await productCount()).toBe(1);
     });
 

@@ -26,8 +26,7 @@
     "db:test:up": "docker compose up -d --wait postgres-test",
     "migration:run": "npm run build && node dist/database/migrate.js run",
     "migration:revert": "npm run build && node dist/database/migrate.js revert",
-    "seed": "npm run build && node dist/seed/main.js",
-    "auth:enroll": "npm run build && node dist/auth/enroll.js"
+    "seed": "npm run build && node dist/seed/main.js"
   },
   "dependencies": {
     "@nestjs/common": "12.1.2",
@@ -39,7 +38,6 @@
     "@nestjs/typeorm": "12.0.2",
     "class-transformer": "0.5.1",
     "class-validator": "0.15.1",
-    "otpauth": "9.5.2",
     "pg": "8.23.1",
     "reflect-metadata": "0.2.2",
     "rxjs": "7.8.2",
