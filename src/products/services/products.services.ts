@@ -5,14 +5,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { DataSource, QueryFailedError } from 'typeorm';
-import { buildPage, Page, pageParams } from '../common/pagination';
-import { Product } from './entities/product.entity';
-import { ProductView, productView } from './product.view';
+import { buildPage, Page, pageParams } from '../../common/pagination';
+import { Product } from '../entities/products.entity';
+import { ProductView, productView } from '../products.view';
 import {
   CreateProductDto,
   ListProductsDto,
   UpdateProductDto,
-} from './products.dto';
+} from '../DTOs/products.dto';
 
 const SKU_UNIQUE_CONSTRAINT = 'products_sku_key';
 

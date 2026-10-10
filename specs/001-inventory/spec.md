@@ -1,6 +1,6 @@
 # Especificación 001 — API de inventario
 
-Fecha: actualización 2026-10-07. Estado: bootstrap, persistencia, seed, autenticación, administración/autorización y catálogo de productos implementados y verificados en los incrementos 002 a 006; el 007 retira el segundo factor (la autenticación queda solo con JWT). Las rutas de movimientos siguen pendientes.
+Fecha: actualización 2026-10-08. Estado: incrementos 002 a 006 publicados/verificados, catálogo probado manualmente por usuario.el 007 retira el segundo factor (la autenticación queda solo con JWT). Movimientos implementados/verificados localmente en 008 (`codex/feature-movements` desde `815c649`); publicación/CI posteriores al commit. Postman, informe final y despliegue pendientes.
 
 ## Objetivo y alcance
 
@@ -25,7 +25,7 @@ No se incluyen inicialmente ventas, facturación, proveedores, múltiples bodega
 
 ## Reglas de negocio
 
-- RN-01: cada producto tiene ID UUID, SKU único normalizado, nombre, descripción opcional, estado activo y fechas de creación/actualización.
+- RN-01: cada producto tiene ID UUID, SKU único canónico e inmutable, nombre, descripción opcional, estado activo y fechas de creación/actualización. En 006 se concreta formato en mayúsculas sin normalización automática (D-32).
 - RN-02: un producto nuevo comienza con saldo cero. El saldo solo cambia por movimientos; no se permite editarlo directamente.
 - RN-03: cada movimiento tiene ID, producto, tipo `IN` o `OUT`, cantidad entera positiva, motivo, usuario responsable y fecha. Los movimientos no se editan ni eliminan.
 - RN-04: una salida no puede dejar saldo negativo. La validación, el cambio de saldo y el movimiento se ejecutan en una misma transacción, protegiendo el saldo también frente a peticiones concurrentes.
@@ -45,11 +45,12 @@ El incremento 004 implementó JWT con sesión, identidad, logout revocable y gua
 - Se limitan los intentos de login por cuenta (5 fallos, 15 minutos) y por IP (20 por minuto).
 - Recuperación/cambio de contraseña y rotación de claves siguen pendientes para mantenimiento.
 
-## Contratos HTTP previstos
+## Contratos HTTP
 
-Prefijo propuesto: `/api/v1`. Son contratos iniciales; DTOs completos, ejemplos de respuesta y límites de paginación se precisarán en la especificación del incremento que los implemente.
+Prefijo: `/api/v1`. La tabla resume las rutas implementadas; DTOs, respuestas y límites completos se concretan en las especificaciones de cada incremento.
 
-Actualmente health, tres rutas `/auth/*`, tres rutas `/users` de administración y cinco rutas `/products` de catálogo están disponibles (contrato exacto en [la especificación 006](../006-catalog/spec.md)). Persistencia/seed se verifican según 003; los movimientos siguen previstos.
+
+Actualmente health, seis rutas `/auth/*`, tres rutas `/users`, cinco rutas `/products` y dos rutas `/movements` están implementadas. Contratos exactos en [la especificación 006](../006-catalog/spec.md) y [la 008](../008-movements/spec.md); POST de movimientos devuelve `{movement,stock}` y GET historial con responsable desde sesión. Persistencia/seed se verifican según 003; el primer enrolamiento se emite por script privado según 004 y la creación administrativa entrega credencial limitada según 005.
 
 | Método y ruta                | Acceso                          | Parámetros principales                    | Resultado esperado                                                                   |
 | ---------------------------- | ------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------ |
@@ -83,6 +84,7 @@ Las rutas de la tabla son relativas al prefijo. `400` corresponde a parámetros 
 | R-07 | Informe                   | 10%  | Documenta cada endpoint, parámetros, respuestas, autenticación, autorización, persistencia y ejecución de pruebas con resultados reales.                | Pendiente                                                                                 |
 | R-08 | Despliegue                | 15%  | API accesible en nube; pipeline ejecuta checks, pruebas y despliegue automatizado con migraciones; se aporta URL y evidencia de una ejecución correcta. | CI con PostgreSQL preparado; despliegue pendiente                                         |
 
+
 Entrega transversal: README reproducible, URL del repositorio, URL de API, informe para Intu y commits que permitan verificar la participación del grupo. La suma de pesos es 100%.
 
 ## Escenarios mínimos de aceptación
@@ -91,7 +93,7 @@ Entrega transversal: README reproducible, URL del repositorio, URL de API, infor
 2. Contraseña correcta → JWT utilizable de inmediato; contraseña errónea o cuenta bloqueada → `401`.
 3. JWT válido → acceso; JWT expirado, alterado o de sesión cerrada → `401`.
 4. Operador intenta asignar roles o crear un producto → `403`; admin → permitido.
-5. Crear dos productos con el mismo SKU normalizado → el segundo devuelve `409`.
+5. Crear dos productos con el mismo SKU canónico → el segundo devuelve `409`.
 6. Entrada de 10 y salida de 4 → saldo 6 y dos movimientos con responsable.
 7. Salida de 7 con saldo 6 → `409`, mismo saldo y sin movimiento nuevo.
 8. Dos salidas simultáneas de 4 con saldo 6 → solo una tiene éxito, saldo 2 y un único movimiento nuevo.
@@ -100,6 +102,7 @@ Entrega transversal: README reproducible, URL del repositorio, URL de API, infor
 11. Reiniciar la API → persisten productos, saldos, movimientos y revocaciones.
 12. CI con cobertura por debajo del umbral o una prueba fallida → no despliega.
 
-El commit 1 verifica documentación; el 2 base/health; el 3 persistencia/seed; el 4 autenticación; el 5 administración de usuarios/roles, último admin y revalidación/concurrencia; el 6 catálogo de productos (escenario 5); el 7 retira el 2FA. Permisos y operaciones de inventario se aplicarán al implementar sus rutas; recuperación 2FA y despliegue siguen pendientes.
+
+El commit 1 verifica documentación; el 2 base/health; el 3 persistencia/seed; el 4 autenticación; el 5 administración de usuarios/roles, último admin y revalidación/concurrencia; el incremento 6 catálogo y permisos; el 7 retira el 2FA; el 8 entradas/salidas, saldo protegido e historial. Postman, informe final, recuperación 2FA y despliegue siguen pendientes.
 
 Estimación de bloques completos sobre el código vigente: R-01 (5) + R-02 (5) + R-03 (5) + R-04 (25) + R-05 (10) = 50%. No garantiza la nota del docente; al ampliar dominio debe mantenerse cobertura y completar R-06/R-07/R-08.

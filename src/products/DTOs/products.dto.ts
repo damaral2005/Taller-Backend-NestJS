@@ -7,7 +7,7 @@ import {
   Matches,
   ValidateIf,
 } from 'class-validator';
-import { PaginationQueryDto } from '../common/pagination';
+import { PaginationQueryDto } from '../../common/pagination';
 
 // Idéntico al CHECK products_sku_format de la migración inicial.
 export const SKU_PATTERN = /^[A-Z0-9][A-Z0-9._-]{0,47}$/;

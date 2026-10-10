@@ -1,6 +1,6 @@
 # Plan 001 — implementación incremental
 
-Fecha: actualización 2026-10-07. Estado: commits 1 a 4 cerrados/publicados; CI de 004 exitoso. Usuario autoriza commit 5 de administración/autorización y push al finalizar.
+Fecha: actualización 2026-10-08. Estado: incrementos 001 a 006 publicados/verificados, CI de catálogo exitoso y recorrido manual confirmado por usuario. Incremento 007 autorizado con commit/push en codex/feature-movements desde 815c649; integrar catálogo antes o junto con movimientos.
 
 ## Arquitectura prevista
 
@@ -76,6 +76,7 @@ Contratos, políticas y tareas previos al código en `specs/005-users/{spec,plan
 
 Aceptación: rutas reales con `401`/`403`, DTOs/duplicados/paginación, cambio vigente de permisos, concurrencia/rollback y cuenta/sesión modificadas mientras esperan. Pruebas Jest/Supertest/PostgreSQL y todas las métricas >=80%; documentación y overview antes del commit; push y CI después. R-03 queda completo solo tras verificar estos criterios.
 
+
 ## Commit 6 — catálogo de productos
 
 Mensaje previsto: `feat: add product catalog endpoints`.
@@ -90,12 +91,16 @@ Mensaje previsto: `fix: remove two-factor authentication and keep JWT-only login
 
 Contratos, decisiones y criterios J-01 a J-11 previos al código en `specs/007-jwt-only-auth/{spec,plan,tasks}.md`. Login directo con sesión y JWT, rutas 2FA retiradas, migración incremental que elimina estructura TOTP, creación de usuarios sin enrolamiento y regla de último admin simplificada. Resultados y límites en `docs/commits/007.md`.
 
+## Commit 8 — movimientos de inventario
+
+Especificación previa al código en `specs/008-movements`: POST/GET de movimientos para admin/operador. Cantidad entera positiva, motivo auditado, responsable de sesión, producto activo y saldo protegido ante concurrencia. Transacción con bloqueo de fila, revalidación de sesión tras esperar y rollback conjunto de stock/registro. Historial paginado con filtros y proyección segura. Reutiliza esquema/guards/paginación; sin dependencias nuevas ni migración. Supertest/PostgreSQL verifica fallos, límites, espera/rollback y persistencia; guía manual y overview registran evidencias. R-06 permanece parcial hasta Postman.
+
+
 ## Incrementos posteriores
 
 | Incremento   | Alcance y evidencias                                                                                                                  |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Recuperación | Definir y probar recuperación de 2FA con identidad verificada, sin bypass por contraseña.                                             |
-| Movimientos  | Entradas/salidas transaccionales, consulta del historial y pruebas de concurrencia y rollback.                                        |
+| Recuperación | Probar y corregir cambios hechos al eliminar el 2FA.                                             |
 | Entrega      | Postman, informe, README completo, cobertura final y trazabilidad de todos los criterios.                                             |
 | Despliegue   | Elegir proveedor, crear configuración reproducible, aplicar migraciones, completar pipeline automatizado y registrar URLs/evidencias. |
 

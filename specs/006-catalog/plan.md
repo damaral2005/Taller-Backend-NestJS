@@ -9,4 +9,8 @@
 7. Actualizar README, decisiones, tareas, trazabilidad (R-06 parcial) y crear `docs/commits/006.md`.
 8. Crear commit en rama propia, abrir pull request, verificar CI y presentar overview antes del siguiente incremento (movimientos).
 
-R-06 solo se marca completo cuando existan también los movimientos y la colección Postman. Este incremento aporta la mitad del catálogo; no se presenta como cumplimiento total.
+R-06 solo se marca completo cuando existan también los movimientos y la colección Postman. Este incremento implementa el catálogo; no se presenta como cumplimiento total.
+
+## Corrección autorizada el 2026-10-08
+
+La revisión de `1d15709` detectó imports incompatibles con las subcarpetas versionadas, formato inválido, eliminación de `.env.example` y documentación de cierre no reproducible. Corregir las rutas manteniendo la estructura aportada por el grupo, restaurar la plantilla sin secretos y completar README/trazabilidad. No cambiar contratos, dependencias ni migraciones. Ejecutar las verificaciones sobre esta versión con PostgreSQL real; sustituir las cifras anteriores por resultados medidos. Registrar un commit de corrección y hacer push a `feature-products`; comprobar CI antes de guiar el recorrido manual.

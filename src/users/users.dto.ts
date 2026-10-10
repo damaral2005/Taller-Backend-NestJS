@@ -1,4 +1,4 @@
-import { IsIn, IsOptional, IsString, Length, Matches } from 'class-validator';
+import { IsIn, IsString, Length, Matches } from 'class-validator';
 import { UserRole } from './entities/user.entity';
 import { PaginationQueryDto } from '../common/pagination';
 
