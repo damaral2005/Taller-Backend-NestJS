@@ -1,5 +1,7 @@
 # Especificación 004 — autenticación JWT y TOTP
 
+> **Reemplazada parcialmente por la [especificación 007](../007-jwt-only-auth/spec.md):** se retira el segundo factor TOTP, el enrolamiento, el desafío y la regla de «último admin con 2FA activo». Se conserva como historia; en esos puntos rige la 007.
+
 Fecha: 2026-10-06. Autorización: el usuario pidió un cuarto commit y push de los incrementos.
 
 ## Alcance

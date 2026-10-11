@@ -26,7 +26,6 @@ describe('Configuración PostgreSQL', () => {
     const config = validateRuntimeEnvironment({
       ...base,
       JWT_SECRET: process.env.JWT_SECRET,
-      TOTP_ENCRYPTION_KEY: process.env.TOTP_ENCRYPTION_KEY,
       NODE_ENV: 'production',
       PORT: '9000',
       DB_PORT: '5432',

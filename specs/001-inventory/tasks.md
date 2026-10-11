@@ -1,6 +1,6 @@
 # Tareas 001 — seguimiento
 
-Fecha: actualización 2026-10-07. Una marca completada corresponde a trabajo verificable, no a comportamiento futuro.
+Fecha: actualización 2026-10-08. Una marca completada corresponde a trabajo verificable, no a comportamiento futuro.
 
 ## Commit 1 — documentación
 
@@ -52,16 +52,54 @@ Fecha: actualización 2026-10-07. Una marca completada corresponde a trabajo ver
 - [x] C5-03: protección de último admin registrado/enrolado y revalidación de actor/sesión bajo bloqueo administrativo.
 - [x] C5-04: 184 pruebas en 13 suites, PostgreSQL real y cobertura >=80% en las cuatro métricas; smoke compilado correcto.
 - [x] C5-05: documentación, trazabilidad, README y overview actualizados; registrar este incremento como quinto commit.
-- [ ] C5-06: push y CI posteriores al commit; evidencia en cierre y próximo incremento.
-- [ ] C5-07: presentar overview y avance; revisión antes del siguiente incremento.
+- [x] C5-06: `5fd8c43` publicado en main; CI success en run 37665422856.
+- [x] C5-07: overview y avance presentados; usuario solicita revisar y corregir catálogo el 2026-10-08.
+
+## Incremento 006 — catálogo del grupo y corrección
+
+- [x] C6-01: especificación del catálogo publicada en `8699a2b`, implementación/pruebas en `1d15709` de `feature-products`.
+- [x] C6-02: revisión identifica imports inválidos, fallo de formato/CI y discrepancias documentales; usuario autoriza corrección y push.
+- [x] C6-03: corregir imports conservando subcarpetas y contratos, restaurar `.env.example` y completar recorrido manual.
+- [x] C6-04: 341 pruebas en 15 suites, cobertura >=80%, lint/tipos/build/formato y smoke compilado; resultados medidos en `docs/commits/006.md`.
+- [x] C6-05: `815c649` publicado en feature-products; CI success en run 37845481553.
+- [x] C6-06: overview/guía presentados; usuario confirma recorrido manual completo y autoriza 007.
+
+## Incremento 007 — movimientos
+
+- [x] C7-01: usuario autoriza siguiente commit y push; rama codex/feature-movements desde catálogo verificado, contratos previos en specs/007-movements.
+- [x] C7-02: módulo/DTOs/rutas/proyección e implementación transaccional de stock/historial.
+- [x] C7-03: 439 pruebas/17 suites y cobertura >=80%; rollback, concurrencia, esperas y regresiones completas.
+- [x] C7-04: lint/tipos/build y smoke compilado correctos; README/SDD/guía/overview actualizados y formato verificado al cierre.
+- [ ] C7-05: registrar commit, publicar rama y comprobar CI; evidencia posterior en cierre y próximo incremento.
+- [ ] C7-06: presentar overview antes de Postman/informe/despliegue.
+
+## Commit 6 — catálogo de productos
+
+- [x] C6-01: contratos y políticas en `specs/006-catalog` antes del código; decisiones D-31 a D-36.
+- [x] C6-02: cinco rutas de catálogo con guards, proyección explícita y errores sin detalles de SQL.
+- [x] C6-03: edición/estado con bloqueo de fila, sin escribir `stock` ni modificar `updatedAt` sin cambios; SKU duplicado concurrente.
+- [x] C6-04: 341 pruebas en 15 suites (157 nuevas) con PostgreSQL real y cobertura >=80% en las cuatro métricas; smoke compilado correcto.
+- [x] C6-05: README, trazabilidad, decisiones, tareas y overview actualizados.
+- [ ] C6-06: commit con identidad real, push y CI posteriores; evidencia en el cierre.
+- [ ] C6-07: presentar overview y avance; revisión antes del siguiente incremento.
+
+## Commit 7 — retiro del 2FA
+
+- [x] C7-01: contratos y decisiones D-37 a D-40 en `specs/007-jwt-only-auth` antes del código.
+- [x] C7-02: login directo con JWT y sesión; rutas 2FA retiradas; migración incremental y entidades sin TOTP.
+- [x] C7-03: creación de usuarios sin enrolamiento y último admin simplificado; script, cifrado y `otpauth` eliminados.
+- [x] C7-04: 341 pruebas en 15 suites con PostgreSQL real y cobertura >=80% en las cuatro métricas; smoke compilado correcto.
+- [x] C7-05: README, trazabilidad, decisiones, tareas y overview actualizados.
+- [ ] C7-06: commit con identidad real, push y CI posteriores; evidencia en el cierre.
+- [ ] C7-07: presentar overview y avance; revisión antes del siguiente incremento.
 
 ## Entrega completa — seguimiento
 
-- [x] F-01: autenticación JWT, enrolamiento y verificación TOTP, sesiones y logout revocable implementados/verificados en 004.
+- [x] F-01: autenticación JWT con sesiones y logout revocable (004); segundo factor retirado en 007.
 - [x] F-02: administración/roles y `401`/`403` verificados en 005; aplicar los mismos guards a inventario al crear esas rutas.
-- [ ] F-03: catálogo y existencias con validaciones y paginación.
-- [ ] F-04: movimientos auditables, atomicidad y control de concurrencia.
-- [ ] F-05: cobertura global mínima del 80% y pruebas HTTP sobre PostgreSQL real.
+- [x] F-03: catálogo y consulta de existencias con validaciones, filtros, paginación y permisos verificados en 006. Cambiar existencias mediante movimientos sigue en F-04.
+- [x] F-04: entradas/salidas auditadas, atomicidad y concurrencia verificadas en 007.
+- [x] F-05: 439 pruebas/17 suites y cobertura >=80% de las 50 fuentes con HTTP/PostgreSQL real en 007; mantener umbral en siguientes cambios y verificar CI tras push.
 - [ ] F-06: colección y entorno Postman utilizables sin secretos reales.
 - [ ] F-07: README reproducible e informe detallado con ejecución de pruebas.
 - [ ] F-08: despliegue en nube, pipeline automatizado, URLs y evidencias.

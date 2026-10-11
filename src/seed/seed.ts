@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import { Product } from '../products/entities/product.entity';
+import { Product } from '../products/entities/products.entity';
 import { StockMovement } from '../movements/entities/stock-movement.entity';
 import { User, UserRole } from '../users/entities/user.entity';
 import { SeedCredentials, seedCredentials } from './credentials';
