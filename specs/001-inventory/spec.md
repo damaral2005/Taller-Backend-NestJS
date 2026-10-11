@@ -49,7 +49,6 @@ El incremento 004 implementó JWT con sesión, identidad, logout revocable y gua
 
 Prefijo: `/api/v1`. La tabla resume las rutas implementadas; DTOs, respuestas y límites completos se concretan en las especificaciones de cada incremento.
 
-
 Actualmente health, seis rutas `/auth/*`, tres rutas `/users`, cinco rutas `/products` y dos rutas `/movements` están implementadas. Contratos exactos en [la especificación 006](../006-catalog/spec.md) y [la 008](../008-movements/spec.md); POST de movimientos devuelve `{movement,stock}` y GET historial con responsable desde sesión. Persistencia/seed se verifican según 003; el primer enrolamiento se emite por script privado según 004 y la creación administrativa entrega credencial limitada según 005.
 
 | Método y ruta                | Acceso                          | Parámetros principales                    | Resultado esperado                                                                   |
@@ -84,7 +83,6 @@ Las rutas de la tabla son relativas al prefijo. `400` corresponde a parámetros 
 | R-07 | Informe                   | 10%  | Documenta cada endpoint, parámetros, respuestas, autenticación, autorización, persistencia y ejecución de pruebas con resultados reales.                | Pendiente                                                                                 |
 | R-08 | Despliegue                | 15%  | API accesible en nube; pipeline ejecuta checks, pruebas y despliegue automatizado con migraciones; se aporta URL y evidencia de una ejecución correcta. | CI con PostgreSQL preparado; despliegue pendiente                                         |
 
-
 Entrega transversal: README reproducible, URL del repositorio, URL de API, informe para Intu y commits que permitan verificar la participación del grupo. La suma de pesos es 100%.
 
 ## Escenarios mínimos de aceptación
@@ -101,7 +99,6 @@ Entrega transversal: README reproducible, URL del repositorio, URL de API, infor
 10. Producto inactivo → rechaza movimientos y conserva su historial.
 11. Reiniciar la API → persisten productos, saldos, movimientos y revocaciones.
 12. CI con cobertura por debajo del umbral o una prueba fallida → no despliega.
-
 
 El commit 1 verifica documentación; el 2 base/health; el 3 persistencia/seed; el 4 autenticación; el 5 administración de usuarios/roles, último admin y revalidación/concurrencia; el incremento 6 catálogo y permisos; el 7 retira el 2FA; el 8 entradas/salidas, saldo protegido e historial. Postman, informe final, recuperación 2FA y despliegue siguen pendientes.
 

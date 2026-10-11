@@ -76,7 +76,6 @@ Contratos, políticas y tareas previos al código en `specs/005-users/{spec,plan
 
 Aceptación: rutas reales con `401`/`403`, DTOs/duplicados/paginación, cambio vigente de permisos, concurrencia/rollback y cuenta/sesión modificadas mientras esperan. Pruebas Jest/Supertest/PostgreSQL y todas las métricas >=80%; documentación y overview antes del commit; push y CI después. R-03 queda completo solo tras verificar estos criterios.
 
-
 ## Commit 6 — catálogo de productos
 
 Mensaje previsto: `feat: add product catalog endpoints`.
@@ -95,12 +94,11 @@ Contratos, decisiones y criterios J-01 a J-11 previos al código en `specs/007-j
 
 Especificación previa al código en `specs/008-movements`: POST/GET de movimientos para admin/operador. Cantidad entera positiva, motivo auditado, responsable de sesión, producto activo y saldo protegido ante concurrencia. Transacción con bloqueo de fila, revalidación de sesión tras esperar y rollback conjunto de stock/registro. Historial paginado con filtros y proyección segura. Reutiliza esquema/guards/paginación; sin dependencias nuevas ni migración. Supertest/PostgreSQL verifica fallos, límites, espera/rollback y persistencia; guía manual y overview registran evidencias. R-06 permanece parcial hasta Postman.
 
-
 ## Incrementos posteriores
 
 | Incremento   | Alcance y evidencias                                                                                                                  |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Recuperación | Probar y corregir cambios hechos al eliminar el 2FA.                                             |
+| Recuperación | Probar y corregir cambios hechos al eliminar el 2FA.                                                                                  |
 | Entrega      | Postman, informe, README completo, cobertura final y trazabilidad de todos los criterios.                                             |
 | Despliegue   | Elegir proveedor, crear configuración reproducible, aplicar migraciones, completar pipeline automatizado y registrar URLs/evidencias. |
 
