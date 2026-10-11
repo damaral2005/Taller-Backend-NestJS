@@ -8,7 +8,7 @@ import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { configureApplication } from '../../src/configure-app';
 import { Session } from '../../src/auth/entities/session.entity';
-import { Product } from '../../src/products/entities/product.entity';
+import { Product } from '../../src/products/entities/products.entity';
 import { StockMovement } from '../../src/movements/entities/stock-movement.entity';
 import { runSeed } from '../../src/seed/seed';
 import { hashPassword } from '../../src/seed/password';

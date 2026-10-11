@@ -8,8 +8,6 @@ import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { configureApplication } from '../../src/configure-app';
 import { Session } from '../../src/auth/entities/session.entity';
-import { AuthProof } from '../../src/auth/entities/auth-proof.entity';
-import { issueEnrollment } from '../../src/auth/enrollment';
 import { User, UserRole } from '../../src/users/entities/user.entity';
 import { Product } from '../../src/products/entities/products.entity';
 import { StockMovement } from '../../src/movements/entities/stock-movement.entity';
@@ -141,25 +139,19 @@ describe('Movimientos HTTP, saldo e historial con PostgreSQL real', () => {
     );
   }
 
-  it('ambas rutas exigen sesión y no aceptan enrolamiento/desafío o sesión revocada/vencida', async () => {
+  it('ambas rutas exigen sesión y no aceptan JWT inválidos, con sesión inexistente o de otro tipo, ni sesión revocada/vencida', async () => {
     await request(server)
       .get('/api/v1/movements')
       .expect(401)
       .expect('Cache-Control', 'no-store');
     await request(server).post('/api/v1/movements').send(payload()).expect(401);
-    const enrollment = await issueEnrollment(context.source, 'admin');
-    const challengeToken = 'a'.repeat(64);
-    await context.source.getRepository(AuthProof).save({
-      userId: admin.id,
-      kind: 'challenge',
-      tokenHash: challengeToken,
-      expiresAt: new Date(Date.now() + 300000),
-    });
-    for (const bearer of [
+    const jwt = app.get(JwtService);
+    const forgedBearers = [
       'invalid',
-      enrollment.enrollmentToken,
-      challengeToken,
-    ]) {
+      await jwt.signAsync({ sub: admin.id, sid: randomUUID(), typ: 'access' }),
+      await jwt.signAsync({ sub: admin.id, sid: session.id, typ: 'other' }),
+    ];
+    for (const bearer of forgedBearers) {
       await create(payload(), bearer).expect(401);
       await list('', bearer).expect(401);
     }

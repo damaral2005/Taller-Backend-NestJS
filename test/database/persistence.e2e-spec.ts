@@ -4,7 +4,7 @@ import { AddressInfo } from 'node:net';
 import { createDataSource } from '../../src/database/data-source';
 import { executeMigration, withDataSource } from '../../src/database/commands';
 import { migrateFromEnvironment } from '../../src/database/migrate';
-import { Product } from '../../src/products/entities/product.entity';
+import { Product } from '../../src/products/entities/products.entity';
 import { User } from '../../src/users/entities/user.entity';
 import { StockMovement } from '../../src/movements/entities/stock-movement.entity';
 import {

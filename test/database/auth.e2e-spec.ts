@@ -14,7 +14,7 @@ import { Roles, RolesGuard } from '../../src/auth/roles.guard';
 import { Session } from '../../src/auth/entities/session.entity';
 import { quoteIdentifier } from '../../src/database/database.config';
 import { User } from '../../src/users/entities/user.entity';
-import { Product } from '../../src/products/entities/product.entity';
+import { Product } from '../../src/products/entities/products.entity';
 import { runSeed } from '../../src/seed/seed';
 import { hashPassword } from '../../src/seed/password';
 import {
