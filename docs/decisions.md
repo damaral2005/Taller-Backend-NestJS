@@ -29,12 +29,12 @@ Decisiones del commit 3:
 
 El código propio se compila a CommonJS; NestJS 12 distribuye dependencias ESM. Los scripts de pruebas habilitan las VM de módulos de Node para que Jest pueda cargarlas, según su documentación oficial. No se simula Nest ni se excluyen estas pruebas para resolver la compatibilidad.
 
-| ID   | Decisión pendiente                                                                                                 | Resolver antes de                        |
-| ---- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------- |
-| P-04 | Recuperación 2FA y rotación de claves; autenticación resuelta en 004 y política de último admin concretada en 005. | Ampliar mantenimiento                    |
-| P-05 | Campos exactos de DTOs, paginación y formato uniforme de errores.                                                  | Implementar cada ruta                    |
-| P-06 | Integrantes y autoría de contribuciones reales.                                                                    | Revisar participación y preparar entrega |
-| P-07 | Proveedor de nube, base de datos, credenciales y estrategia de migración/despliegue.                               | Implementar despliegue                   |
+| ID   | Decisión pendiente                                                                                                  | Resolver antes de                        |
+| ---- | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| P-04 | Recuperación 2FA y rotación de claves; autenticación resuelta en 004 y política de último admin concretada en 005.  | Ampliar mantenimiento                    |
+| P-05 | Campos exactos de DTOs, paginación y formato uniforme de errores.                                                   | Implementar cada ruta                    |
+| P-06 | Integrantes y autoría de contribuciones reales.                                                                     | Revisar participación y preparar entrega |
+| P-07 | Resuelta en 010 (D-51 a D-58): Railway, PostgreSQL gestionado, secretos en Railway/GitHub y migraciones pre-deploy. | Cerrada                                  |
 
 El ejemplo puede orientar la estructura modular y los DTOs; no demuestra cumplimiento de JWT, 2FA, roles, cobertura ni despliegue. No se reutilizan passwords, secretos o datos personales de otros entornos.
 
@@ -89,3 +89,14 @@ Decisiones del incremento 009:
 - D-48: Swagger UI en `/api/v1/docs` y OpenAPI JSON en `/api/v1/docs-json`, públicos y activos en todos los entornos, incluida producción, para que el docente y el grupo consulten la API desplegada. Solo exponen contratos; las rutas siguen protegidas por sus guards y Swagger no concede acceso.
 - D-49: decoradores explícitos (`@ApiProperty`, `@ApiOperation`, `@ApiResponse`) en lugar del plugin del CLI: documentan patrones, longitudes y rangos que el plugin no deduce y no cambian la compilación de Jest. Cuando existe una constante de validación (SKU, cantidad máxima) se reutiliza.
 - D-50: esquemas de respuesta como clases solo de documentación (`*.responses.ts`), sin modificar las proyecciones `*.view.ts`; error común `{statusCode,message,error}`. Una prueba e2e compara la lista exacta de operaciones para que una ruta nueva sin documentar haga fallar la suite.
+
+Decisiones del incremento 010 (aprobadas por el usuario el 2026-10-12):
+
+- D-51: Railway, un proyecto con servicios `api` y `Postgres` (gestionado) en un único entorno `production`. Plan Trial/Free con crédito limitado: no se presenta como gratuito y la URL debe verificarse durante la evaluación.
+- D-52: despliega GitHub Actions. Job `deploy` con `needs: verify`, solo en push a `main`, con `@railway/cli` 5.63.1 fijada y un project token (`RAILWAY_TOKEN`). El autodeploy de Railway desde GitHub queda desactivado. En `main` no se cancelan ejecuciones en curso para no cortar un despliegue.
+- D-53: la configuración del servicio (build, pre-deploy, start, healthcheck, réplicas) se fija en el panel de Railway y se documenta en el plan 010; Railway ya no admite `railway.json` en servicios nuevos.
+- D-54: migraciones como pre-deploy con `node dist/database/migrate.js run`, sobre el build compilado; si fallan, la versión nueva no se activa. Nunca se ejecuta `migration:revert` en producción.
+- D-55: seed manual una sola vez con contraseñas de producción propias que no se guardan en el repositorio ni en GitHub; el pipeline no ejecuta seed.
+- D-56: `TRUST_PROXY_HOPS` (0–10, por defecto 0) aplica `trust proxy` de Express para que el límite de 20/min use la IP real detrás del proxy de Railway (valor 1). Con 0 se ignora `X-Forwarded-For` y nadie puede falsear su IP.
+- D-57: `JWT_SECRET` de producción nuevo y exclusivo de Railway. `.env.example` ya no incluye claves con apariencia real ni `TOTP_ENCRYPTION_KEY`; el valor que estuvo versionado se considera público.
+- D-58: una réplica (limitador en memoria, D-23), Swagger público en producción (D-48) y conexión a PostgreSQL por la red privada de Railway con `DB_SSL=false`.

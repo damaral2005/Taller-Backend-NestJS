@@ -7,5 +7,5 @@
 - [x] M-T05: 45 unidades y 53 integraciones nuevas con PostgreSQL; rollback/concurrencia/esperas/persistencia verificadas.
 - [x] M-T06: 439 pruebas/17 suites, lint/tipos/build y smoke compilado pasan; cobertura >=80% sobre 50 fuentes. Formato verificado al cierre.
 - [x] M-T07: documentación, guía manual, trazabilidad y overview actualizados.
-- [ ] M-T08: registrar commit y publicar rama; CI posterior al commit se informa en cierre y próximo incremento.
-- [ ] M-T09: presentar overview y guía de verificación; revisión antes de Postman/informe/despliegue.
+- [x] M-T08: `5ebb7dc` publicado en `codex/feature-movements` e integrado en main mediante `725d69a` y `2a86b32`.
+- [x] M-T09: overview y guía (`docs/movements-manual.md`) presentados y revisados antes de integrar.

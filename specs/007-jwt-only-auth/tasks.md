@@ -9,5 +9,5 @@
 - [x] J-T07: pruebas de auth, users, products, migración y configuración reescritas y en verde.
 - [x] J-T08: formato, lint, tipos, build y cobertura >=80% en las cuatro métricas; proceso compilado y búsqueda de referencias residuales.
 - [x] J-T09: README, decisiones, trazabilidad, tareas y `docs/commits/007.md` actualizados.
-- [ ] J-T10: commit con identidad real, push/PR y CI verificado.
-- [ ] J-T11: overview presentado y revisado antes del siguiente incremento.
+- [x] J-T10: `cc5eee2` publicado en `fix/fix-auth` e integrado en main mediante `725d69a` y `2a86b32`.
+- [x] J-T11: overview presentado y revisado por el grupo antes de integrar.
