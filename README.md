@@ -6,7 +6,7 @@ Repositorio: [Taller-Backend-NestJS](https://github.com/damaral2005/Taller-Backe
 
 ## Estado actual
 
-Los commits 1 y 2 establecen el SDD y la base NestJS. El commit 3 incorpora PostgreSQL y seed; el 4 añade JWT y sesiones revocables (su segundo factor TOTP se retira en el incremento 7). El incremento 5 implementa administración de usuarios y roles con protección del último admin. El incremento 6 añade el catálogo de productos con existencias de solo lectura. El incremento 7 corrige el alcance: la autenticación queda solo con usuario y contraseña que producen un JWT. Sus verificaciones y estado de cierre se registran en cada overview. **Movimientos, Postman, informe y despliegue siguen pendientes.**
+Los commits 1 y 2 establecen el SDD y la base NestJS. El commit 3 incorpora PostgreSQL y seed; el 4 añade JWT y sesiones revocables (su segundo factor TOTP se retira en el incremento 7). El incremento 5 implementa administración de usuarios y roles con protección del último admin. El incremento 6 añade el catálogo de productos con existencias de solo lectura. El incremento 7 corrige el alcance: la autenticación queda solo con usuario y contraseña que producen un JWT. Sus verificaciones y estado de cierre se registran en cada overview. **Movimientos, Postman e informe siguen pendientes; el pipeline de despliegue a Railway está definido y requiere la configuración única descrita en Integración continua.**
 
 El código incluye health, seis rutas de autenticación, tres rutas administrativas de usuarios y cinco rutas de catálogo de productos. Los contratos de movimientos de la especificación 001 representan funcionalidades futuras.
 
@@ -31,8 +31,6 @@ La carpeta `2026-2-nestjs-postgres` se utiliza como referencia del curso. El des
 - [Overview y verificaciones del commit 6](docs/commits/006.md).
 - [Especificación del retiro del 2FA](specs/007-jwt-only-auth/spec.md), [plan](specs/007-jwt-only-auth/plan.md) y [tareas](specs/007-jwt-only-auth/tasks.md).
 - [Overview y verificaciones del commit 7](docs/commits/007.md).
-- [Especificación de la documentación OpenAPI/Swagger](specs/009-swagger/spec.md), [plan](specs/009-swagger/plan.md) y [tareas](specs/009-swagger/tasks.md).
-- [Overview y verificaciones del incremento 9](docs/commits/009.md).
 - [Guía para colaborar con Spec-Driven Design](docs/CONTRIBUTING.md).
 
 ## Flujo de trabajo por commit
@@ -57,7 +55,6 @@ Los cambios de alcance se registran; una tarea pendiente no se presenta como com
 | 5      | Crear/listar usuarios, asignar roles y proteger al último admin    | Ver resultados y estado en el [overview](docs/commits/005.md) |
 | 6      | Catálogo: crear, listar, consultar, editar y activar/desactivar    | Ver resultados y estado en el [overview](docs/commits/006.md) |
 | 7      | Retiro del 2FA: login directo con JWT y sesiones revocables        | Ver resultados y estado en el [overview](docs/commits/007.md) |
-| 9      | Documentación OpenAPI con Swagger UI                               | Ver resultados y estado en el [overview](docs/commits/009.md) |
 
 Movimientos, colección Postman, informe y despliegue se desarrollarán en incrementos posteriores. Estos incrementos no completan la entrega.
 
@@ -144,23 +141,6 @@ Para ejecutar el build:
 npm run build
 npm run start:prod
 ```
-
-## Documentación interactiva (Swagger)
-
-Con la API iniciada, abre en el navegador:
-
-- `http://localhost:3000/api/v1/docs`: Swagger UI, con todas las rutas agrupadas por módulo (`health`, `auth`, `users`, `products`, `movements`).
-- `http://localhost:3000/api/v1/docs-json`: el documento OpenAPI 3 en JSON. Postman puede importarlo con **Import → Link** o pegando el archivo.
-
-Para probar una ruta protegida desde Swagger UI:
-
-1. Abre `POST /auth/login`, pulsa **Try it out**, envía `{"username":"admin","password":"<SEED_ADMIN_PASSWORD>"}` y copia `accessToken`.
-2. Pulsa **Authorize** (arriba a la derecha), pega el token sin escribir `Bearer` y confirma.
-3. Usa **Try it out** en cualquier ruta. Con un token de `operador`, las rutas de solo admin responden `403`.
-
-Cada operación indica qué rol la puede usar, sus parámetros con los mismos límites que valida la API y sus respuestas (`200/201/204` y los errores `400/401/403/404/409/429` que correspondan). Ambas rutas son públicas y están activas en todos los entornos, incluida la API desplegada: solo describen contratos, y Swagger no omite guards, validaciones ni límites de intentos. El token no se guarda en el navegador; al recargar la página hay que volver a pulsar **Authorize**. Los recursos de la interfaz se sirven desde la propia API, sin CDN.
-
-La documentación se genera con `@nestjs/swagger` a partir de los controladores y DTOs (`src/swagger.ts`, decoradores `@Api*` y clases `*.responses.ts`). Al añadir una ruta hay que documentarla: `test/swagger.e2e-spec.ts` compara la lista exacta de operaciones y falla si aparece una ruta sin incluir.
 
 ## Autenticación: recorrido manual
 
@@ -279,7 +259,50 @@ Los scripts habilitan las VM de módulos de Node para cargar las dependencias ES
 
 ## Integración continua
 
-[El workflow de CI](.github/workflows/ci.yml) se ejecuta en GitHub Actions ante push o pull request: instala desde lockfile en Node 24, levanta un servicio PostgreSQL de pruebas, revisa formato, lint y tipos, compila y ejecuta pruebas con cobertura. Conserva el reporte como artefacto. Su ejecución remota requiere publicar los commits en GitHub; no se ha configurado despliegue todavía.
+[El workflow `PROD-CI`](.github/workflows/ci.yml) se ejecuta en GitHub Actions ante pull request hacia `main`, push a `main` o ejecución manual. Instala desde lockfile con la versión de `.nvmrc` y tiene cuatro jobs:
+
+| Job                                         | Qué verifica                                                                                                                      |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `Calidad (formato, lint, tipos, auditoría)` | `format:check`, `lint`, `typecheck` y `npm audit --omit=dev --audit-level=high`                                                   |
+| `Pruebas y cobertura`                       | `npm test` y `npm run test:cov` contra PostgreSQL 16.15 (umbral 80%); guarda `coverage/` como artefacto                           |
+| `Prueba de humo (build de producción)`      | `build`, `deploy:prepare` (migraciones + seed) en base vacía, seed repetido, API con `NODE_ENV=production`, health y login        |
+| `Desplegar en Railway`                      | Solo en push a `main` y solo si los tres anteriores pasan: `railway up --ci` y comprobación de `/api/v1/health` en la URL pública |
+
+En un pull request el job de despliegue se omite. Railway usa [`railway.json`](railway.json): compila con `npm run build`, ejecuta `npm run deploy:prepare` como pre-deploy (migraciones y seed idempotente; si falla, la versión nueva no se publica), arranca con `npm run start:prod` y espera a que `/api/v1/health` responda antes de enviar tráfico.
+
+### Configuración única
+
+**GitHub — bloquear PRs en rojo.** En _Settings → Branches_ (o _Rules → Rulesets_) crear una regla para `main` con _Require a pull request before merging_, _Require status checks to pass_ (marcar los tres jobs de verificación) y _Require branches to be up to date_. Equivalente con `gh` (requiere permisos de administración del repositorio):
+
+```bash
+gh api -X PUT repos/damaral2005/Taller-Backend-NestJS/branches/main/protection --input - <<'EOF'
+{
+  "required_status_checks": {
+    "strict": true,
+    "contexts": [
+      "Calidad (formato, lint, tipos, auditoría)",
+      "Pruebas y cobertura",
+      "Prueba de humo (build de producción)"
+    ]
+  },
+  "enforce_admins": true,
+  "required_pull_request_reviews": { "required_approving_review_count": 1 },
+  "restrictions": null
+}
+EOF
+```
+
+**Railway.**
+
+1. Crear un proyecto con un servicio PostgreSQL y un servicio para la API.
+2. En las variables del servicio de la API: `NODE_ENV=production`, `DB_HOST=${{Postgres.PGHOST}}`, `DB_PORT=${{Postgres.PGPORT}}`, `DB_NAME=${{Postgres.PGDATABASE}}`, `DB_USERNAME=${{Postgres.PGUSER}}`, `DB_PASSWORD=${{Postgres.PGPASSWORD}}`, `DB_SCHEMA=public`, `DB_SSL=false` (red privada), `JWT_SECRET` (32 bytes, generado como en la sección de requisitos), `SEED_ADMIN_PASSWORD` y `SEED_OPERATOR_PASSWORD` propias. `PORT` lo inyecta Railway.
+3. En _Settings → Networking_ generar un dominio público.
+4. En _Settings → Source_ del servicio, **desconectar el repositorio de GitHub** para que solo Actions despliegue; si no, Railway desplegaría cada push aunque el pipeline falle.
+5. En _Project Settings → Tokens_ crear un token de proyecto para el entorno `production`.
+
+**GitHub — entorno `production`** (_Settings → Environments_): secret `RAILWAY_TOKEN` (el token de proyecto) y variables `RAILWAY_SERVICE` (nombre o ID del servicio de la API) y `RAILWAY_PUBLIC_URL` (por ejemplo `https://<servicio>.up.railway.app`). Opcionalmente, _Deployment branches_ limitado a `main`.
+
+La comprobación final consulta el health público, que también responde mientras la versión anterior sigue activa; la garantía de que la versión nueva está sana la da el healthcheck de Railway, que no la publica si falla.
 
 ## Estructura actual
 
@@ -288,7 +311,7 @@ src/
   config/environment.ts   # Validación de configuración
   config/runtime-environment.ts # Configuración HTTP y PostgreSQL
   database/               # Conexión, comandos y migración inicial
-  common/                 # Paginación y esquemas OpenAPI compartidos
+  common/                 # Paginación compartida
   users/                  # Entidad, administración y roles
   products/               # Entidad, catálogo (controlador, DTOs, servicio) y stock
   movements/entities/     # Historial con usuario y producto
@@ -296,14 +319,14 @@ src/
   auth/                   # Login, JWT, sesiones y guards
   health/                 # Endpoint público de salud
   app.module.ts           # Configuración global y módulos
-  configure-app.ts        # Prefijo, pipe, Swagger y hooks compartidos
-  swagger.ts              # Documento OpenAPI y Swagger UI en /api/v1/docs
+  configure-app.ts        # Prefijo, pipe y hooks compartidos
   bootstrap.ts            # Creación y arranque del servidor
   main.ts                 # Punto de entrada del proceso
 test/                     # Unidades e integración HTTP/PostgreSQL
 specs/                    # Especificaciones, planes y tareas versionadas
 docs/                     # Decisiones y overview por commit
-.github/workflows/ci.yml   # Checks automatizados
+.github/workflows/ci.yml  # Pipeline PROD-CI: verificación y despliegue
+railway.json              # Build, pre-deploy, arranque y healthcheck en Railway
 ```
 
 La siguiente fase implementará los movimientos de inventario con su propia especificación antes del código. Consulta la [guía del grupo](docs/CONTRIBUTING.md) para preparar tu incremento.

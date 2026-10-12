@@ -1,23 +1,68 @@
 name: CI
 
+# Pipeline de integración y despliegue continuo.
+# - En pull request hacia main: solo verifica (quality, test, smoke). Estos tres
+#   jobs se marcan como "required status checks" en la protección de main, así
+#   un PR con el pipeline en rojo no se puede fusionar.
+# - En push a main (es decir, tras fusionar un PR verde): verifica de nuevo y,
+#   solo si todo pasa, despliega en Railway.
 on:
   push:
+    branches: [main]
   pull_request:
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+# En PRs se cancela la ejecución anterior de la misma rama; en main nunca se
+# cancela, para no cortar un despliegue a la mitad.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  verify:
+  # 1. Comprobaciones estáticas: no necesitan base de datos.
+  quality:
+    name: Calidad (formato, lint, tipos, auditoría)
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Instalar Node.js (versión de .nvmrc)
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Instalar dependencias desde el lockfile
+        run: npm ci
+
+      - name: Comprobar formato (Prettier)
+        run: npm run format:check
+
+      - name: Comprobar reglas (ESLint)
+        run: npm run lint
+
+      - name: Verificar tipos (aplicación y pruebas)
+        run: npm run typecheck
+
+      - name: Auditar dependencias de producción
+        run: npm audit --omit=dev --audit-level=high
+
+  # 2. Pruebas unitarias + integración (Supertest y PostgreSQL real) con el
+  #    umbral de cobertura del 80% que exige jest.config.cjs.
+  test:
+    name: Pruebas y cobertura
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       NODE_ENV: test
-      PORT: 3000
       TEST_DB_HOST: 127.0.0.1
       TEST_DB_PORT: 5432
       TEST_DB_NAME: inventory_test
@@ -38,19 +83,26 @@ jobs:
           --health-timeout 3s
           --health-retries 20
     steps:
-      - uses: actions/checkout@v7
+      - name: Descargar el código
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v7
+
+      - name: Instalar Node.js (versión de .nvmrc)
+        uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: npm ci
-      - run: npm run format:check
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm run build
-      - run: npm run test:cov
+
+      - name: Instalar dependencias desde el lockfile
+        run: npm ci
+
+      - name: Ejecutar pruebas unitarias
+        run: npm test
+
+      - name: Ejecutar unitarias + e2e con cobertura mínima del 80%
+        run: npm run test:cov
+
       - name: Guardar reporte de cobertura
         if: always()
         uses: actions/upload-artifact@v7
@@ -58,3 +110,145 @@ jobs:
           name: coverage
           path: coverage/
           if-no-files-found: ignore
+
+  # 3. Prueba de humo: reproduce el arranque de producción sobre una base
+  #    vacía (lo mismo que hará Railway): build, migraciones, seed dos veces
+  #    (idempotencia), API con NODE_ENV=production, health y login.
+  smoke:
+    name: Prueba de humo (build de producción)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_NAME: inventory
+      DB_USERNAME: inventory
+      DB_PASSWORD: inventory_ci_only
+      DB_SCHEMA: public
+      DB_SSL: 'false'
+      SEED_ADMIN_PASSWORD: Ci-only-admin-password
+      SEED_OPERATOR_PASSWORD: Ci-only-operator-password
+    services:
+      postgres:
+        image: postgres:16.15-alpine
+        env:
+          POSTGRES_DB: inventory
+          POSTGRES_USER: inventory
+          POSTGRES_PASSWORD: inventory_ci_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U inventory -d inventory"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Instalar Node.js (versión de .nvmrc)
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Instalar dependencias desde el lockfile
+        run: npm ci
+
+      - name: Compilar el proyecto
+        run: npm run build
+
+      - name: Generar un JWT_SECRET efímero
+        run: echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+
+      - name: Aplicar migraciones y seed (mismo comando que Railway)
+        run: npm run deploy:prepare
+
+      - name: Repetir el seed (debe ser idempotente)
+        run: node dist/seed/main.js
+
+      - name: Arrancar la API y verificar health y login
+        run: |
+          node dist/main.js > api.log 2>&1 &
+          base="http://127.0.0.1:${PORT}/api/v1"
+          for i in $(seq 1 30); do
+            curl -fsS "$base/health" && break
+            sleep 1
+          done
+          curl -fsS "$base/health" | grep -q '"status":"ok"'
+          token=$(curl -fsS -X POST "$base/auth/login" \
+            -H 'Content-Type: application/json' \
+            -d "{\"username\":\"admin\",\"password\":\"${SEED_ADMIN_PASSWORD}\"}" \
+            | jq -r '.accessToken')
+          test -n "$token" && test "$token" != "null"
+          curl -fsS "$base/products" -H "Authorization: Bearer $token" \
+            | jq -e '.total == 3' > /dev/null
+          echo "Prueba de humo correcta"
+
+      - name: Mostrar log de la API si algo falla
+        if: failure()
+        run: cat api.log || true
+
+  # 4. Despliegue: solo en push a main y solo si los tres jobs anteriores pasan.
+  #    En un pull request este job se omite: nunca se despliega un PR.
+  deploy:
+    name: Desplegar en Railway
+    needs: [quality, test, smoke]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: ${{ vars.RAILWAY_PUBLIC_URL }}
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_SERVICE: ${{ vars.RAILWAY_SERVICE }}
+      RAILWAY_PUBLIC_URL: ${{ vars.RAILWAY_PUBLIC_URL }}
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Instalar Node.js (versión de .nvmrc)
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Validar configuración de despliegue
+        run: |
+          missing=0
+          [ -n "$RAILWAY_TOKEN" ] || { echo "::error::Falta el secret RAILWAY_TOKEN"; missing=1; }
+          [ -n "$RAILWAY_SERVICE" ] || { echo "::error::Falta la variable RAILWAY_SERVICE"; missing=1; }
+          [ -n "$RAILWAY_PUBLIC_URL" ] || { echo "::error::Falta la variable RAILWAY_PUBLIC_URL"; missing=1; }
+          exit $missing
+
+      - name: Instalar Railway CLI
+        run: npm install --global @railway/cli@5.66.0
+
+      # --ci transmite los logs del build y termina con error si el build falla.
+      # Railway ejecuta luego railway.json: preDeploy (migraciones + seed) y el
+      # healthcheck /api/v1/health antes de pasar el tráfico a la nueva versión.
+      - name: Subir y desplegar el servicio
+        run: railway up --service "$RAILWAY_SERVICE" --ci
+
+      - name: Verificar la API desplegada
+        run: |
+          url="${RAILWAY_PUBLIC_URL%/}/api/v1/health"
+          for i in $(seq 1 30); do
+            if curl -fsS "$url" | grep -q '"status":"ok"'; then
+              echo "API desplegada y saludable: $url"
+              exit 0
+            fi
+            echo "Esperando a la API ($i/30)..."
+            sleep 10
+          done
+          echo "::error::La API desplegada no respondió en $url"
+          exit 1
