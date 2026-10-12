@@ -82,3 +82,10 @@ Decisiones del incremento 007:
 - D-44: cantidad y saldo limitados al integer de PostgreSQL (2147483647), overflow y saldo insuficiente → 409. Producto inactivo → 409; UUID existente como filtro sin registros → lista vacía. Motivo obligatorio de 1–300 caracteres visibles, sin NUL.
 - D-45: creación con transacción, bloqueo de fila, sesión revalidada después de esperar, update exclusivo de stock e insert auditado; rollback conjunto. Comparte bloqueo con catálogo/desactivación. Historial con filtros y lectura REPEATABLE READ para conteo/página consistente.
 - D-46: POST no es idempotente ni admite edición/eliminación de movimientos. Repetirlo válido registra otro movimiento; confirmar historial antes de reintentar respuesta incierta. No hay migración ni dependencias nuevas; Postman queda para el próximo incremento.
+
+Decisiones del incremento 009:
+
+- D-47: `@nestjs/swagger` 12.0.2 con versión exacta; peer dependencies compatibles con NestJS 12.1.2, TypeScript 5.9.3, class-validator y class-transformer. Es la única dependencia nueva y no hay migración.
+- D-48: Swagger UI en `/api/v1/docs` y OpenAPI JSON en `/api/v1/docs-json`, públicos y activos en todos los entornos, incluida producción, para que el docente y el grupo consulten la API desplegada. Solo exponen contratos; las rutas siguen protegidas por sus guards y Swagger no concede acceso.
+- D-49: decoradores explícitos (`@ApiProperty`, `@ApiOperation`, `@ApiResponse`) en lugar del plugin del CLI: documentan patrones, longitudes y rangos que el plugin no deduce y no cambian la compilación de Jest. Cuando existe una constante de validación (SKU, cantidad máxima) se reutiliza.
+- D-50: esquemas de respuesta como clases solo de documentación (`*.responses.ts`), sin modificar las proyecciones `*.view.ts`; error común `{statusCode,message,error}`. Una prueba e2e compara la lista exacta de operaciones para que una ruta nueva sin documentar haga fallar la suite.

@@ -12,6 +12,7 @@ import { Product } from '../../products/entities/products.entity';
 import { User } from '../../users/entities/user.entity';
 
 export type MovementType = 'IN' | 'OUT';
+export const MOVEMENT_TYPES: readonly MovementType[] = ['IN', 'OUT'];
 
 @Entity('stock_movements')
 @Check('movements_type_valid', `"type" IN ('IN', 'OUT')`)

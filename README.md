@@ -31,6 +31,8 @@ La carpeta `2026-2-nestjs-postgres` se utiliza como referencia del curso. El des
 - [Overview y verificaciones del commit 6](docs/commits/006.md).
 - [Especificación del retiro del 2FA](specs/007-jwt-only-auth/spec.md), [plan](specs/007-jwt-only-auth/plan.md) y [tareas](specs/007-jwt-only-auth/tasks.md).
 - [Overview y verificaciones del commit 7](docs/commits/007.md).
+- [Especificación de la documentación OpenAPI/Swagger](specs/009-swagger/spec.md), [plan](specs/009-swagger/plan.md) y [tareas](specs/009-swagger/tasks.md).
+- [Overview y verificaciones del incremento 9](docs/commits/009.md).
 - [Guía para colaborar con Spec-Driven Design](docs/CONTRIBUTING.md).
 
 ## Flujo de trabajo por commit
@@ -55,6 +57,7 @@ Los cambios de alcance se registran; una tarea pendiente no se presenta como com
 | 5      | Crear/listar usuarios, asignar roles y proteger al último admin    | Ver resultados y estado en el [overview](docs/commits/005.md) |
 | 6      | Catálogo: crear, listar, consultar, editar y activar/desactivar    | Ver resultados y estado en el [overview](docs/commits/006.md) |
 | 7      | Retiro del 2FA: login directo con JWT y sesiones revocables        | Ver resultados y estado en el [overview](docs/commits/007.md) |
+| 9      | Documentación OpenAPI con Swagger UI                               | Ver resultados y estado en el [overview](docs/commits/009.md) |
 
 Movimientos, colección Postman, informe y despliegue se desarrollarán en incrementos posteriores. Estos incrementos no completan la entrega.
 
@@ -141,6 +144,23 @@ Para ejecutar el build:
 npm run build
 npm run start:prod
 ```
+
+## Documentación interactiva (Swagger)
+
+Con la API iniciada, abre en el navegador:
+
+- `http://localhost:3000/api/v1/docs`: Swagger UI, con todas las rutas agrupadas por módulo (`health`, `auth`, `users`, `products`, `movements`).
+- `http://localhost:3000/api/v1/docs-json`: el documento OpenAPI 3 en JSON. Postman puede importarlo con **Import → Link** o pegando el archivo.
+
+Para probar una ruta protegida desde Swagger UI:
+
+1. Abre `POST /auth/login`, pulsa **Try it out**, envía `{"username":"admin","password":"<SEED_ADMIN_PASSWORD>"}` y copia `accessToken`.
+2. Pulsa **Authorize** (arriba a la derecha), pega el token sin escribir `Bearer` y confirma.
+3. Usa **Try it out** en cualquier ruta. Con un token de `operador`, las rutas de solo admin responden `403`.
+
+Cada operación indica qué rol la puede usar, sus parámetros con los mismos límites que valida la API y sus respuestas (`200/201/204` y los errores `400/401/403/404/409/429` que correspondan). Ambas rutas son públicas y están activas en todos los entornos, incluida la API desplegada: solo describen contratos, y Swagger no omite guards, validaciones ni límites de intentos. El token no se guarda en el navegador; al recargar la página hay que volver a pulsar **Authorize**. Los recursos de la interfaz se sirven desde la propia API, sin CDN.
+
+La documentación se genera con `@nestjs/swagger` a partir de los controladores y DTOs (`src/swagger.ts`, decoradores `@Api*` y clases `*.responses.ts`). Al añadir una ruta hay que documentarla: `test/swagger.e2e-spec.ts` compara la lista exacta de operaciones y falla si aparece una ruta sin incluir.
 
 ## Autenticación: recorrido manual
 
@@ -268,7 +288,7 @@ src/
   config/environment.ts   # Validación de configuración
   config/runtime-environment.ts # Configuración HTTP y PostgreSQL
   database/               # Conexión, comandos y migración inicial
-  common/                 # Paginación compartida
+  common/                 # Paginación y esquemas OpenAPI compartidos
   users/                  # Entidad, administración y roles
   products/               # Entidad, catálogo (controlador, DTOs, servicio) y stock
   movements/entities/     # Historial con usuario y producto
@@ -276,7 +296,8 @@ src/
   auth/                   # Login, JWT, sesiones y guards
   health/                 # Endpoint público de salud
   app.module.ts           # Configuración global y módulos
-  configure-app.ts        # Prefijo, pipe y hooks compartidos
+  configure-app.ts        # Prefijo, pipe, Swagger y hooks compartidos
+  swagger.ts              # Documento OpenAPI y Swagger UI en /api/v1/docs
   bootstrap.ts            # Creación y arranque del servidor
   main.ts                 # Punto de entrada del proceso
 test/                     # Unidades e integración HTTP/PostgreSQL
