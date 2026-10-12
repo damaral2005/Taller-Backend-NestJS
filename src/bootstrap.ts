@@ -12,7 +12,10 @@ export async function createApplication(
     ...options,
     abortOnError: false,
   });
-  configureApplication(app);
+  const config = app.get<ConfigService<AppEnvironment, true>>(ConfigService);
+  configureApplication(app, {
+    trustProxyHops: config.get('TRUST_PROXY_HOPS', { infer: true }),
+  });
   return app;
 }
 

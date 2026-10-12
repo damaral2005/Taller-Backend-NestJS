@@ -89,18 +89,19 @@ node -e "const fs = require('node:fs'), c = require('node:crypto'); fs.appendFil
 
 Ejecuta ese comando una sola vez al configurar tu entorno. Conserva la clave: cambiarla invalida los JWT emitidos; la rotación requiere un procedimiento que aún no se implementa. Si tu `.env` antiguo aún contiene `TOTP_ENCRYPTION_KEY`, la variable se ignora y puedes borrarla.
 
-| Variable      | Por defecto         | Regla                                                                |
-| ------------- | ------------------- | -------------------------------------------------------------------- |
-| `NODE_ENV`    | `development`       | `development`, `test` o `production`                                 |
-| `PORT`        | `3000`              | Entero entre 1 y 65535, escrito solo con dígitos                     |
-| `DB_HOST`     | `127.0.0.1`         | Host de PostgreSQL                                                   |
-| `DB_PORT`     | `5433`              | Entero entre 1 y 65535                                               |
-| `DB_NAME`     | `inventory`         | Identificador en minúsculas; en test debe terminar en `_test`        |
-| `DB_USERNAME` | `inventory`         | Usuario de PostgreSQL                                                |
-| `DB_PASSWORD` | Sin valor en código | Obligatoria; `.env.example` contiene una clave de demostración local |
-| `DB_SCHEMA`   | `public`            | Identificador en minúsculas, máximo 63 caracteres                    |
-| `DB_SSL`      | `false`             | `true` o `false`; con `true` se verifica el certificado              |
-| `JWT_SECRET`  | Sin valor           | Al menos 32 bytes; firma los JWT (HS256)                             |
+| Variable           | Por defecto         | Regla                                                                   |
+| ------------------ | ------------------- | ----------------------------------------------------------------------- |
+| `NODE_ENV`         | `development`       | `development`, `test` o `production`                                    |
+| `PORT`             | `3000`              | Entero entre 1 y 65535, escrito solo con dígitos                        |
+| `DB_HOST`          | `127.0.0.1`         | Host de PostgreSQL                                                      |
+| `DB_PORT`          | `5433`              | Entero entre 1 y 65535                                                  |
+| `DB_NAME`          | `inventory`         | Identificador en minúsculas; en test debe terminar en `_test`           |
+| `DB_USERNAME`      | `inventory`         | Usuario de PostgreSQL                                                   |
+| `DB_PASSWORD`      | Sin valor en código | Obligatoria; `.env.example` contiene una clave de demostración local    |
+| `DB_SCHEMA`        | `public`            | Identificador en minúsculas, máximo 63 caracteres                       |
+| `DB_SSL`           | `false`             | `true` o `false`; con `true` se verifica el certificado                 |
+| `JWT_SECRET`       | Sin valor           | Al menos 32 bytes; firma los JWT (HS256)                                |
+| `TRUST_PROXY_HOPS` | `0`                 | Entero de 0 a 10: proxies de confianza; `1` en Railway (ver despliegue) |
 
 Preparar la base y cargar los registros iniciales:
 
@@ -279,7 +280,20 @@ Los scripts habilitan las VM de módulos de Node para cargar las dependencias ES
 
 ## Integración continua
 
-[El workflow de CI](.github/workflows/ci.yml) se ejecuta en GitHub Actions ante push o pull request: instala desde lockfile en Node 24, levanta un servicio PostgreSQL de pruebas, revisa formato, lint y tipos, compila y ejecuta pruebas con cobertura. Conserva el reporte como artefacto. Su ejecución remota requiere publicar los commits en GitHub; no se ha configurado despliegue todavía.
+[El workflow de CI](.github/workflows/ci.yml) se ejecuta en GitHub Actions ante push o pull request: instala desde lockfile en Node 24, levanta un servicio PostgreSQL de pruebas, revisa formato, lint y tipos, compila y ejecuta pruebas con cobertura. Conserva el reporte como artefacto. En un push a `main`, si todo lo anterior pasa, el job `deploy` publica la API en Railway y ejecuta un smoke test; en ramas y pull requests nunca despliega.
+
+## Despliegue (Railway)
+
+La API se despliega en Railway con PostgreSQL gestionado; el diseño completo está en [la especificación 010](specs/010-deployment/spec.md) y la configuración del panel en [su plan](specs/010-deployment/plan.md).
+
+| Paso                  | Qué ocurre                                                                                     |
+| --------------------- | ---------------------------------------------------------------------------------------------- |
+| Push o PR a otra rama | Solo `verify` (formato, lint, tipos, build y pruebas con cobertura ≥80%)                       |
+| Push a `main`         | `verify` → `deploy` (`railway up`) → smoke test. Si `verify` falla, no se despliega            |
+| En Railway            | Build `npm run build`, migraciones como pre-deploy, arranque `npm run start:prod`, healthcheck |
+| Seed                  | Manual y una sola vez, con contraseñas de producción propias; el pipeline nunca lo ejecuta     |
+
+En GitHub se requieren el secreto `RAILWAY_TOKEN` (project token del entorno `production`) y las variables `RAILWAY_SERVICE` y `API_URL`. Ningún secreto de la API ni de la base vive en el repositorio. URL pública: pendiente del primer despliegue.
 
 ## Estructura actual
 

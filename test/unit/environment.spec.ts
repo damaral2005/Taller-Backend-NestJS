@@ -5,6 +5,7 @@ describe('Configuración de la aplicación', () => {
     expect(validateEnvironment({})).toEqual({
       NODE_ENV: 'development',
       PORT: 3000,
+      TRUST_PROXY_HOPS: 0,
     });
   });
 
@@ -44,6 +45,24 @@ describe('Configuración de la aplicación', () => {
     (NODE_ENV) => {
       expect(() => validateEnvironment({ NODE_ENV })).toThrow(
         'NODE_ENV debe ser development, test o production.',
+      );
+    },
+  );
+
+  it.each(['0', '1', '2', '10'])(
+    'acepta TRUST_PROXY_HOPS=%s como número de proxies de confianza',
+    (TRUST_PROXY_HOPS) => {
+      expect(validateEnvironment({ TRUST_PROXY_HOPS }).TRUST_PROXY_HOPS).toBe(
+        Number(TRUST_PROXY_HOPS),
+      );
+    },
+  );
+
+  it.each(['', '-1', '11', '99', '100', '1.5', ' 1', 'true', 'abc', 1])(
+    'rechaza TRUST_PROXY_HOPS inválido (%s)',
+    (TRUST_PROXY_HOPS) => {
+      expect(() => validateEnvironment({ TRUST_PROXY_HOPS })).toThrow(
+        /^TRUST_PROXY_HOPS debe ser un entero entre 0 y 10\.$/,
       );
     },
   );

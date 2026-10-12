@@ -9,4 +9,4 @@
 - [x] B-T07: build real responde a health y rechaza configuración inválida sin divulgar el valor.
 - [x] B-T08: README, decisiones, tareas y overview actualizados con resultados reales.
 - [x] B-T09: registrar este incremento como segundo commit local con verificaciones completas.
-- [ ] B-T10: revisar overview con el usuario antes de iniciar persistencia.
+- [x] B-T10: overview revisado; el usuario autorizó persistencia el 2026-10-06.

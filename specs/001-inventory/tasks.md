@@ -1,6 +1,6 @@
 # Tareas 001 — seguimiento
 
-Fecha: actualización 2026-10-08. Una marca completada corresponde a trabajo verificable, no a comportamiento futuro.
+Fecha: actualización 2026-10-12. Una marca completada corresponde a trabajo verificable, no a comportamiento futuro.
 
 ## Commit 1 — documentación
 
@@ -64,14 +64,14 @@ Fecha: actualización 2026-10-08. Una marca completada corresponde a trabajo ver
 - [x] C6-05: `815c649` publicado en feature-products; CI success en run 37845481553.
 - [x] C6-06: overview/guía presentados; usuario confirma recorrido manual completo y autoriza 007.
 
-## Incremento 007 — movimientos
+## Incremento 008 — movimientos (`specs/008-movements`)
 
 - [x] C7-01: usuario autoriza siguiente commit y push; rama codex/feature-movements desde catálogo verificado, contratos previos en specs/007-movements.
 - [x] C7-02: módulo/DTOs/rutas/proyección e implementación transaccional de stock/historial.
 - [x] C7-03: 439 pruebas/17 suites y cobertura >=80%; rollback, concurrencia, esperas y regresiones completas.
 - [x] C7-04: lint/tipos/build y smoke compilado correctos; README/SDD/guía/overview actualizados y formato verificado al cierre.
-- [ ] C7-05: registrar commit, publicar rama y comprobar CI; evidencia posterior en cierre y próximo incremento.
-- [ ] C7-06: presentar overview antes de Postman/informe/despliegue.
+- [x] C7-05: `5ebb7dc` publicado en `codex/feature-movements` e integrado en main mediante `725d69a` y `2a86b32`.
+- [x] C7-06: overview presentado; el grupo integró movimientos en main el 2026-10-12.
 
 ## Commit 6 — catálogo de productos
 
@@ -80,8 +80,8 @@ Fecha: actualización 2026-10-08. Una marca completada corresponde a trabajo ver
 - [x] C6-03: edición/estado con bloqueo de fila, sin escribir `stock` ni modificar `updatedAt` sin cambios; SKU duplicado concurrente.
 - [x] C6-04: 341 pruebas en 15 suites (157 nuevas) con PostgreSQL real y cobertura >=80% en las cuatro métricas; smoke compilado correcto.
 - [x] C6-05: README, trazabilidad, decisiones, tareas y overview actualizados.
-- [ ] C6-06: commit con identidad real, push y CI posteriores; evidencia en el cierre.
-- [ ] C6-07: presentar overview y avance; revisión antes del siguiente incremento.
+- [x] C6-06: `1d15709`/`815c649` publicados en `feature-products` e integrados en main mediante `2a86b32`.
+- [x] C6-07: overview presentado y revisado por el grupo antes de integrar.
 
 ## Commit 7 — retiro del 2FA
 
@@ -90,15 +90,22 @@ Fecha: actualización 2026-10-08. Una marca completada corresponde a trabajo ver
 - [x] C7-03: creación de usuarios sin enrolamiento y último admin simplificado; script, cifrado y `otpauth` eliminados.
 - [x] C7-04: 341 pruebas en 15 suites con PostgreSQL real y cobertura >=80% en las cuatro métricas; smoke compilado correcto.
 - [x] C7-05: README, trazabilidad, decisiones, tareas y overview actualizados.
-- [ ] C7-06: commit con identidad real, push y CI posteriores; evidencia en el cierre.
-- [ ] C7-07: presentar overview y avance; revisión antes del siguiente incremento.
+- [x] C7-06: `cc5eee2` publicado en `fix/fix-auth` e integrado en main mediante `725d69a` y `2a86b32`.
+- [x] C7-07: overview presentado y revisado por el grupo antes de integrar.
 
 ## Incremento 009 — documentación OpenAPI
 
 - [x] C9-01: usuario aprueba Swagger con opciones recomendadas; contratos y decisiones D-47 a D-50 en `specs/009-swagger` antes del código.
 - [x] C9-02: `@nestjs/swagger` 12.0.2, UI en `/api/v1/docs`, JSON en `/api/v1/docs-json` y 14 operaciones documentadas con roles, parámetros y respuestas.
 - [x] C9-03: 450 pruebas/18 suites y cobertura >=80%; lint/tipos/build/formato y smoke compilado correctos; README y overview actualizados.
-- [ ] C9-04: commit local; push y CI solo con autorización.
+- [x] C9-04: `db6b8e8` publicado en `feature-swagger` e integrado en main mediante el PR #2 (`21dd53a`).
+
+## Incremento 010 — despliegue en Railway
+
+- [x] C10-01: rama `feat-despliegue` desde `21dd53a`; spec, plan y tareas en `specs/010-deployment` antes del código, con decisiones propuestas D-51 a D-58.
+- [x] C10-02: usuario aprueba D-51 a D-58 el 2026-10-12; despliegue solo desde `main`.
+- [ ] C10-03: código, workflow y pruebas verificados (468 pruebas/19 suites, cobertura >=80%); falta configurar Railway/GitHub, merge y primer despliegue según `specs/010-deployment/tasks.md`.
+- [ ] C10-04: overview `docs/commits/010.md` con URL, run de despliegue y límites.
 
 ## Entrega completa — seguimiento
 
@@ -109,5 +116,5 @@ Fecha: actualización 2026-10-08. Una marca completada corresponde a trabajo ver
 - [x] F-05: 439 pruebas/17 suites y cobertura >=80% de las 50 fuentes con HTTP/PostgreSQL real en 007; mantener umbral en siguientes cambios y verificar CI tras push.
 - [ ] F-06: colección y entorno Postman utilizables sin secretos reales.
 - [ ] F-07: README reproducible e informe detallado con ejecución de pruebas.
-- [ ] F-08: despliegue en nube, pipeline automatizado, URLs y evidencias.
+- [ ] F-08: despliegue en nube, pipeline automatizado, URLs y evidencias; especificado en 010.
 - [ ] F-09: comprobar participación real mediante commits y preparar el informe para Intu.

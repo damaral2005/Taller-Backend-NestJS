@@ -9,7 +9,8 @@ permissions:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # En main no se cancela una ejecución en curso: podría cortar un despliegue a medias.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   verify:
@@ -58,3 +59,40 @@ jobs:
           name: coverage
           path: coverage/
           if-no-files-found: ignore
+
+  deploy:
+    # Solo despliega lo que llega a main y supera todos los checks de verify.
+    needs: verify
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: ${{ vars.API_URL }}/api/v1/docs
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Desplegar en Railway (build, migraciones y arranque)
+        run: npx --yes @railway/cli@5.63.1 up --service "$RAILWAY_SERVICE" --ci
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE: ${{ vars.RAILWAY_SERVICE }}
+      - name: Smoke test de la API publicada
+        env:
+          API_URL: ${{ vars.API_URL }}
+        run: |
+          set -euo pipefail
+          health="$(curl --fail --silent --show-error --retry 12 --retry-delay 10 --retry-all-errors "$API_URL/api/v1/health")"
+          echo "health: $health"
+          test "$health" = '{"status":"ok"}'
+          curl --fail --silent --show-error "$API_URL/api/v1/docs-json" > /dev/null
+          status="$(curl --silent --output /dev/null --write-out '%{http_code}' "$API_URL/api/v1/products")"
+          echo "GET /products sin token: $status"
+          test "$status" = "401"

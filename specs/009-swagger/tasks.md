@@ -6,5 +6,5 @@
 - [x] S-T04: prueba e2e del documento (11 casos) y regresiones completas en verde: 450 pruebas en 18 suites.
 - [x] S-T05: formato, lint, tipos, build y cobertura >=80% en las cuatro métricas.
 - [x] S-T06: README, decisiones, trazabilidad, tareas y overview actualizados.
-- [ ] S-T07: commit local registrado; push/CI solo con autorización del usuario.
-- [ ] S-T08: presentar overview y revisión antes del siguiente incremento.
+- [x] S-T07: `db6b8e8` publicado e integrado en main mediante el PR #2 (`21dd53a`).
+- [x] S-T08: overview presentado y revisado; el grupo integró Swagger en main.
