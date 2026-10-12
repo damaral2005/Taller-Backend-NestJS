@@ -100,3 +100,12 @@ Decisiones del incremento 010 (aprobadas por el usuario el 2026-10-12):
 - D-56: `TRUST_PROXY_HOPS` (0–10, por defecto 0) aplica `trust proxy` de Express para que el límite de 20/min use la IP real detrás del proxy de Railway (valor 1). Con 0 se ignora `X-Forwarded-For` y nadie puede falsear su IP.
 - D-57: `JWT_SECRET` de producción nuevo y exclusivo de Railway. `.env.example` ya no incluye claves con apariencia real ni `TOTP_ENCRYPTION_KEY`; el valor que estuvo versionado se considera público.
 - D-58: una réplica (limitador en memoria, D-23), Swagger público en producción (D-48) y conexión a PostgreSQL por la red privada de Railway con `DB_SSL=false`.
+
+Decisiones del incremento 011 (aprobadas por el usuario el 2026-10-12, tras contrastar la spec con el código):
+
+- D-59: eliminación física de productos y usuarios solo cuando no tienen movimientos; con historial se responde `409` (RN-08, RN-10). Reemplaza el «fuera de alcance» de 006; el historial sigue siendo inmutable (RN-03). Sin migración ni dependencias nuevas.
+- D-60: en `DELETE /users/:id` se evalúa primero «último admin» y después «auto-eliminación». El actor siempre es un admin revalidado, así que con el orden inverso la regla de último admin sería inalcanzable. Las sesiones del usuario eliminado caen por la FK `sessions.user_id ON DELETE CASCADE` existente.
+- D-61: un admin puede cambiar `username` y `password` de cualquier usuario con `PATCH /users/:id`. Cambiar la contraseña revoca las demás sesiones del destino (se conserva la que hace la petición) y reinicia su contador y bloqueo de intentos. Reemplaza parcialmente el «fuera de alcance» de 007: sigue sin haber cambio por el propio usuario ni recuperación. El rol solo cambia con `PATCH /users/:id/role`.
+- D-62: `MovementsService` traduce la violación de `stock_movements_user_id_fkey` a `401`, para que eliminar un usuario mientras registra un movimiento no produzca `500`.
+- D-63: `GET /health/ready` ejecuta `SELECT 1` con límite de 2 s y responde `503` genérico si falla. Railway y el smoke test siguen usando `GET /health`, que no consulta la base (D-12).
+- D-64: Swagger pasa de 14 a 19 operaciones y `ErrorStatus` admite `503`. Reemplaza el conteo del criterio S-02 de 009.

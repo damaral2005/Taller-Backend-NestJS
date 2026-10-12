@@ -8,6 +8,10 @@ import {
 import { DataSource, IsNull, MoreThan, QueryFailedError } from 'typeorm';
 import { Identity } from '../auth/auth.service';
 import { Session } from '../auth/entities/session.entity';
+import {
+  isConstraintViolation,
+  MOVEMENT_USER_FK,
+} from '../common/database-errors';
 import { buildPage, Page, pageParams } from '../common/pagination';
 import { Product } from '../products/entities/products.entity';
 import { StockMovement } from './entities/stock-movement.entity';
@@ -67,6 +71,9 @@ export class MovementsService {
         return { movement: movementView(movement), stock };
       });
     } catch (error) {
+      // El usuario fue eliminado entre la revalidación de sesión y el INSERT.
+      if (isConstraintViolation(error, '23503', MOVEMENT_USER_FK))
+        throw new UnauthorizedException('Credenciales inválidas.');
       if (error instanceof QueryFailedError)
         throw new InternalServerErrorException(
           'No se pudo registrar el movimiento.',

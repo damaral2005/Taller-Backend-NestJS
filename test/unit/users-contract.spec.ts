@@ -7,6 +7,7 @@ import {
   ChangeRoleDto,
   CreateUserDto,
   ListUsersDto,
+  UpdateUserDto,
 } from '../../src/users/users.dto';
 
 describe('Contratos y proyección de usuarios', () => {
@@ -74,6 +75,46 @@ describe('Contratos y proyección de usuarios', () => {
     expect(
       validateSync(
         plainToInstance(CreateUserDto, { ...valid, ...changes }),
+        options,
+      ).length,
+    ).toBeGreaterThan(0);
+  });
+
+  it.each([
+    { username: 'renamed' },
+    { username: 'a.b' },
+    { username: 'x'.repeat(64) },
+    { password: 'x'.repeat(12) },
+    { password: 'x'.repeat(128) },
+    { username: 'renamed', password: 'Test-only-password' },
+    // El body vacío es válido para el DTO; lo rechaza el servicio con 400.
+    {},
+  ])('acepta edición dentro del contrato %j', (body) => {
+    expect(validateSync(plainToInstance(UpdateUserDto, body), options)).toEqual(
+      [],
+    );
+  });
+
+  it.each([
+    { username: null },
+    { password: null },
+    { username: 'UPPERCASE' },
+    { username: ' space ' },
+    { username: 'ab' },
+    { username: 'x'.repeat(65) },
+    { username: '.dot' },
+    { username: 42 },
+    { password: 'x'.repeat(11) },
+    { password: 'x'.repeat(129) },
+    { password: 123456789012 },
+    { role: 'admin' },
+    { passwordHash: 'injected' },
+    { id: randomUUID() },
+    { loginFailures: 0 },
+  ])('rechaza edición fuera del contrato %j', (changes) => {
+    expect(
+      validateSync(
+        plainToInstance(UpdateUserDto, { username: 'renamed', ...changes }),
         options,
       ).length,
     ).toBeGreaterThan(0);

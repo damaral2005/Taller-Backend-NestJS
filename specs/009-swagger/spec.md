@@ -29,7 +29,7 @@ Ambas rutas están activas en todos los entornos (`development`, `test` y `produ
 ## Criterios de aceptación
 
 - S-01: `GET /api/v1/docs` responde `200` con HTML de Swagger UI y `GET /api/v1/docs-json` responde `200` con OpenAPI 3.
-- S-02: el documento contiene exactamente las 14 operaciones existentes (1 health, 3 auth, 3 users, 5 products y 2 movements), ni más ni menos, con el prefijo `/api/v1`.
+- S-02: el documento contiene exactamente las 14 operaciones existentes (1 health, 3 auth, 3 users, 5 products y 2 movements), ni más ni menos, con el prefijo `/api/v1`. Desde [la especificación 011](../011-crud-completion/spec.md) son 19 (D-64).
 - S-03: las 12 operaciones protegidas declaran el esquema bearer; health y login no. Las operaciones exclusivas de admin documentan `403`, y todas las protegidas documentan `401`.
 - S-04: los DTOs de entrada documentan campos obligatorios, patrones, longitudes, enumeraciones y rangos coherentes con class-validator; los esquemas de respuesta no contienen `password`, `passwordHash`, `seedKey` ni datos de sesión.
 - S-05: los decoradores de documentación no alteran el comportamiento: `whitelist` y `forbidNonWhitelisted` siguen rechazando campos extra y todas las pruebas anteriores pasan.

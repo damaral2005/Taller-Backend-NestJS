@@ -73,6 +73,8 @@ Quitar el segundo factor reduce la seguridad: una contraseña filtrada ya basta 
 
 ## Fuera de alcance
 
+> El cambio de contraseña hecho por un admin se incorpora en [la especificación 011](../011-crud-completion/spec.md) (D-61).
+
 Refresh tokens, cambio, olvido o recuperación de contraseña, registro público, bloqueo manual de cuentas y rotación de `JWT_SECRET`.
 
 ## Fuentes técnicas

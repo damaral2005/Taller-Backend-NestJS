@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -12,6 +14,7 @@ import {
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiNoContentResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
@@ -108,5 +111,22 @@ export class ProductsController {
     @Body() body: SetProductStatusDto,
   ) {
     return this.products.setStatus(id, body.active);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  @Roles('admin')
+  @PRODUCT_ID
+  @ApiOperation({
+    summary: 'Eliminar producto sin movimientos (solo admin)',
+    description: 'Con historial responde 409: se desactiva con /status.',
+  })
+  @ApiNoContentResponse({ description: 'Producto eliminado.' })
+  @ApiErrors(400, 403, NOT_FOUND, [
+    409,
+    'El producto tiene movimientos; no se elimina.',
+  ])
+  remove(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+    return this.products.remove(id);
   }
 }

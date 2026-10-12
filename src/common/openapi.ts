@@ -33,7 +33,7 @@ export class PageResponse {
   totalPages!: number;
 }
 
-export type ErrorStatus = 400 | 401 | 403 | 404 | 409 | 429;
+export type ErrorStatus = 400 | 401 | 403 | 404 | 409 | 429 | 503;
 
 const DEFAULT_ERRORS: Record<ErrorStatus, string> = {
   400: 'Parámetros inválidos, campos faltantes o campos no permitidos.',
@@ -42,6 +42,7 @@ const DEFAULT_ERRORS: Record<ErrorStatus, string> = {
   404: 'Recurso no encontrado.',
   409: 'La operación entra en conflicto con el estado actual.',
   429: 'Demasiadas peticiones desde la misma IP (20 por minuto).',
+  503: 'Un servicio del que depende la API no está disponible.',
 };
 
 /**

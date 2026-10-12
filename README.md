@@ -6,9 +6,9 @@ Repositorio: [Taller-Backend-NestJS](https://github.com/damaral2005/Taller-Backe
 
 ## Estado actual
 
-Los commits 1 y 2 establecen el SDD y la base NestJS. El commit 3 incorpora PostgreSQL y seed; el 4 añade JWT y sesiones revocables (su segundo factor TOTP se retira en el incremento 7). El incremento 5 implementa administración de usuarios y roles con protección del último admin. El incremento 6 añade el catálogo de productos con existencias de solo lectura. El incremento 7 corrige el alcance: la autenticación queda solo con usuario y contraseña que producen un JWT. Sus verificaciones y estado de cierre se registran en cada overview. **Movimientos, Postman, informe y despliegue siguen pendientes.**
+Los commits 1 y 2 establecen el SDD y la base NestJS. El commit 3 incorpora PostgreSQL y seed; el 4 añade JWT y sesiones revocables (su segundo factor TOTP se retira en el incremento 7). El incremento 5 implementa administración de usuarios y roles con protección del último admin. El incremento 6 añade el catálogo de productos con existencias de solo lectura. El incremento 7 corrige el alcance: la autenticación queda solo con usuario y contraseña que producen un JWT. Sus verificaciones y estado de cierre se registran en cada overview. El incremento 8 añade los movimientos, el 9 Swagger y el 10 el despliegue. El incremento 11 completa el CRUD: eliminar productos sin movimientos, consultar, editar y eliminar usuarios, y una comprobación de readiness. **El informe y el primer despliegue siguen pendientes.**
 
-El código incluye health, seis rutas de autenticación, tres rutas administrativas de usuarios y cinco rutas de catálogo de productos. Los contratos de movimientos de la especificación 001 representan funcionalidades futuras.
+El código incluye 19 operaciones: dos de health, tres de autenticación, seis de usuarios, seis de catálogo y dos de movimientos.
 
 La carpeta `2026-2-nestjs-postgres` se utiliza como referencia del curso. El desarrollo propio se realiza en `Taller Backend – NestJS`; no se modifica el ejemplo ni se copia su historial.
 
@@ -33,6 +33,8 @@ La carpeta `2026-2-nestjs-postgres` se utiliza como referencia del curso. El des
 - [Overview y verificaciones del commit 7](docs/commits/007.md).
 - [Especificación de la documentación OpenAPI/Swagger](specs/009-swagger/spec.md), [plan](specs/009-swagger/plan.md) y [tareas](specs/009-swagger/tasks.md).
 - [Overview y verificaciones del incremento 9](docs/commits/009.md).
+- [Especificación del CRUD completo y readiness](specs/011-crud-completion/spec.md), [plan](specs/011-crud-completion/plan.md) y [tareas](specs/011-crud-completion/tasks.md).
+- [Overview y verificaciones del incremento 11](docs/commits/011.md).
 - [Guía para colaborar con Spec-Driven Design](docs/CONTRIBUTING.md).
 
 ## Flujo de trabajo por commit
@@ -58,8 +60,9 @@ Los cambios de alcance se registran; una tarea pendiente no se presenta como com
 | 6      | Catálogo: crear, listar, consultar, editar y activar/desactivar    | Ver resultados y estado en el [overview](docs/commits/006.md) |
 | 7      | Retiro del 2FA: login directo con JWT y sesiones revocables        | Ver resultados y estado en el [overview](docs/commits/007.md) |
 | 9      | Documentación OpenAPI con Swagger UI                               | Ver resultados y estado en el [overview](docs/commits/009.md) |
+| 11     | CRUD completo de productos y usuarios, readiness y colección       | Ver resultados y estado en el [overview](docs/commits/011.md) |
 
-Movimientos, colección Postman, informe y despliegue se desarrollarán en incrementos posteriores. Estos incrementos no completan la entrega.
+El informe y la evidencia del primer despliegue se completan en incrementos posteriores. Estos incrementos no completan la entrega.
 
 ## Requisitos y ejecución
 
@@ -137,7 +140,9 @@ Respuesta HTTP `200`:
 { "status": "ok" }
 ```
 
-Es una comprobación pública de disponibilidad del proceso. La ruta `/health` sin prefijo devuelve `404`.
+Es una comprobación pública de disponibilidad del proceso y no consulta la base. La ruta `/health` sin prefijo devuelve `404`.
+
+`GET /api/v1/health/ready` también es pública y sí comprueba PostgreSQL con `SELECT 1` (límite de 2 segundos): responde `200 {"status":"ok"}` o `503` con el mensaje genérico `Base de datos no disponible.`, siempre con `Cache-Control: no-store`. El healthcheck de Railway y el smoke test siguen usando `/health`.
 
 Para ejecutar el build:
 
@@ -163,6 +168,16 @@ Cada operación indica qué rol la puede usar, sus parámetros con los mismos l�
 
 La documentación se genera con `@nestjs/swagger` a partir de los controladores y DTOs (`src/swagger.ts`, decoradores `@Api*` y clases `*.responses.ts`). Al añadir una ruta hay que documentarla: `test/swagger.e2e-spec.ts` compara la lista exacta de operaciones y falla si aparece una ruta sin incluir.
 
+## Colección Postman
+
+`postman/Taller Backend NestJS — Inventario (JWT).postman_collection.json` es autocontenida (sus variables viven en la colección) y recorre casos exitosos y errores de todas las rutas en las carpetas 00 a 10. Trae las contraseñas de demostración de `.env.example`; si tu seed usa otras, cámbialas en la pestaña **Variables**. Con migración, seed y API iniciados:
+
+```bash
+postman collection run "postman/Taller Backend NestJS — Inventario (JWT).postman_collection.json"
+```
+
+También se puede importar en Postman y ejecutar con el Collection Runner. Cada corrida crea usuarios `qa_*` y productos `QA-*`; el límite de 20 peticiones por minuto en `/auth/*` obliga a esperar un minuto entre corridas completas.
+
 ## Autenticación: recorrido manual
 
 La autenticación usa solo usuario y contraseña, que producen un JWT. No hay segundo factor ni paso previo de enrolamiento. Con migraciones y seed aplicados y la API iniciada (los usuarios `admin` y `operador` del seed usan `SEED_ADMIN_PASSWORD` y `SEED_OPERATOR_PASSWORD`):
@@ -184,16 +199,19 @@ Invoke-RestMethod -Method Post "$base/auth/logout" -Headers $headers
 
 Las rutas son relativas a `/api/v1`. Las antiguas `/auth/2fa/setup`, `/auth/2fa/confirm` y `/auth/verify-2fa` fueron retiradas y devuelven `404`. Se rechazan campos adicionales con `400`; credenciales inválidas, usuario inexistente o cuenta bloqueada con el mismo `401`; exceso de peticiones con `429`. Username canónico y contraseña de 12–128 caracteres. Cinco fallos de contraseña bloquean el login de esa cuenta 15 minutos y un éxito reinicia el contador. El límite por IP/ruta es 20 peticiones/minuto en memoria por proceso.
 
-El JWT es HS256, dura 15 minutos y no hay refresh. Cada login crea una sesión en PostgreSQL; el guard comprueba JWT y sesión y toma el rol vigente de BD, y `logout` revoca solo esa sesión. Todas las respuestas auth llevan `Cache-Control: no-store`. Sin segundo factor, la contraseña es la única barrera: usa contraseñas propias en cualquier entorno compartido. No hay cambio ni recuperación de contraseña, refresh tokens ni rotación de claves automatizada.
+El JWT es HS256, dura 15 minutos y no hay refresh. Cada login crea una sesión en PostgreSQL; el guard comprueba JWT y sesión y toma el rol vigente de BD, y `logout` revoca solo esa sesión. Todas las respuestas auth llevan `Cache-Control: no-store`. Sin segundo factor, la contraseña es la única barrera: usa contraseñas propias en cualquier entorno compartido. Un admin puede cambiar la contraseña de un usuario con `PATCH /users/:id`; no hay cambio por el propio usuario, recuperación de contraseña, refresh tokens ni rotación de claves automatizada.
 
 ## Administración de usuarios y roles
 
-Después de iniciar sesión como admin, usa el Bearer JWT obtenido. Un operador recibe `403` y una petición sin sesión válida recibe `401` en las tres rutas. No existe registro público.
+Después de iniciar sesión como admin, usa el Bearer JWT obtenido. Un operador recibe `403` y una petición sin sesión válida recibe `401` en las seis rutas. No existe registro público.
 
 | Ruta relativa a `/api/v1` | Parámetros                                                 | Respuesta                                   |
 | ------------------------- | ---------------------------------------------------------- | ------------------------------------------- |
 | `POST /users`             | JSON `username`, `password`, `role` (`admin` u `operador`) | `201`: usuario seguro                       |
 | `GET /users`              | `page` opcional 1–10000, `limit` opcional 1–100            | `200`: `{data,page,limit,total,totalPages}` |
+| `GET /users/:id`          | UUID v4                                                    | `200`: usuario seguro                       |
+| `PATCH /users/:id`        | UUID v4, JSON `username` y/o `password`                    | `200`: usuario seguro actualizado           |
+| `DELETE /users/:id`       | UUID v4                                                    | `204` sin cuerpo                            |
 | `PATCH /users/:id/role`   | UUID v4, JSON `{role}`                                     | `200`: usuario seguro actualizado           |
 
 Usuario seguro contiene solo `id`, `username`, `role`, `createdAt` y `updatedAt`, con fechas ISO-8601. El listado no devuelve credenciales. La creación ya no emite credencial de enrolamiento: el admin comunica privadamente la contraseña inicial y el nuevo usuario inicia sesión directamente con ella.
@@ -213,11 +231,19 @@ Invoke-RestMethod "$base/users?page=1&limit=20" -Headers $headers
 Invoke-RestMethod -Method Patch "$base/users/$($newUser.id)/role" -Headers $headers -ContentType 'application/json' -Body (@{ role = 'admin' } | ConvertTo-Json)
 ```
 
-El incremento 7 no cambia las rutas de administración salvo la respuesta de `POST /users`.
+`PATCH /users/:id` acepta `username` y/o `password` con las mismas reglas que la creación; el body vacío, `null` o campos extra como `role` reciben `400`, y un username ocupado `409`. Repetir el mismo username no modifica `updatedAt`. Cambiar la contraseña revoca todas las sesiones del usuario editado salvo la que hace la petición y reinicia su bloqueo de intentos; renombrar no invalida sesiones.
+
+`DELETE /users/:id` solo elimina usuarios sin movimientos, porque el historial conserva a su responsable. Responde `409` si el destino es el último admin, si es tu propio usuario o si tiene movimientos (cada caso con su mensaje); para retirar a un usuario con historial, degrádalo a `operador`. Al eliminarlo, sus sesiones desaparecen y su JWT recibe `401` de inmediato.
+
+```powershell
+Invoke-RestMethod "$base/users/$($newUser.id)" -Headers $headers
+Invoke-RestMethod -Method Patch "$base/users/$($newUser.id)" -Headers $headers -ContentType 'application/json' -Body (@{ username = 'operador_renombrado' } | ConvertTo-Json)
+Invoke-RestMethod -Method Delete "$base/users/$($newUser.id)" -Headers $headers
+```
 
 ## Catálogo de productos
 
-Todas las rutas requieren Bearer JWT de una sesión iniciada con `POST /auth/login`. Cualquier usuario autenticado (admin u operador) puede leer; solo admin puede crear, editar y activar/desactivar. Sin sesión válida → `401`; operador en una ruta de escritura → `403`. La autorización se resuelve antes de validar el cuerpo.
+Todas las rutas requieren Bearer JWT de una sesión iniciada con `POST /auth/login`. Cualquier usuario autenticado (admin u operador) puede leer; solo admin puede crear, editar, activar/desactivar y eliminar. Sin sesión válida → `401`; operador en una ruta de escritura → `403`. La autorización se resuelve antes de validar el cuerpo.
 
 | Ruta relativa a `/api/v1`    | Acceso | Entrada                                                  | Respuesta                                   |
 | ---------------------------- | ------ | -------------------------------------------------------- | ------------------------------------------- |
@@ -226,6 +252,7 @@ Todas las rutas requieren Bearer JWT de una sesión iniciada con `POST /auth/log
 | `GET /products/:id`          | Todos  | UUID v4                                                  | `200`: producto                             |
 | `PATCH /products/:id`        | Admin  | UUID v4, JSON `name` y/o `description` (`null` la borra) | `200`: producto actualizado                 |
 | `PATCH /products/:id/status` | Admin  | UUID v4, JSON `{active}` booleano                        | `200`: producto actualizado                 |
+| `DELETE /products/:id`       | Admin  | UUID v4                                                  | `204` sin cuerpo                            |
 
 Producto: exactamente `{id,sku,name,description,active,stock,createdAt,updatedAt}`; `description` es `null` si no existe y las fechas son ISO-8601. `stock` es de solo lectura: ninguna ruta de catálogo lo escribe; cambiará únicamente con los movimientos.
 
@@ -233,7 +260,9 @@ SKU canónico, sin transformación automática: `^[A-Z0-9][A-Z0-9._-]{0,47}$` (1
 
 Listado: misma paginación que usuarios (defaults 1 y 20; `page` 1–10000, `limit` 1–100, texto decimal sin ceros iniciales ni valores repetidos). `search` (1–64 caracteres) busca texto parcial en SKU o nombre sin distinguir mayúsculas y trata `%`, `_` y `\` como texto literal. `active` admite solo `true` o `false`; sin él se listan también los inactivos. Orden por SKU e ID; una página fuera del total devuelve `data:[]`.
 
-Editar o cambiar el estado bloquea la fila del producto, compara y solo escribe las columnas de catálogo que cambian: repetir los mismos valores responde `200` sin modificar `updatedAt`, y una edición nunca pisa un saldo confirmado por otra transacción. Desactivar conserva datos, saldo e historial. No hay eliminación física.
+Editar o cambiar el estado bloquea la fila del producto, compara y solo escribe las columnas de catálogo que cambian: repetir los mismos valores responde `200` sin modificar `updatedAt`, y una edición nunca pisa un saldo confirmado por otra transacción. Desactivar conserva datos, saldo e historial.
+
+`DELETE /products/:id` elimina físicamente solo un producto **sin movimientos**; su SKU queda libre. Con historial responde `409` y el producto se retira con `PATCH /products/:id/status`. El borrado bloquea la misma fila que los movimientos: si coincide con una entrada, o se elimina el producto y el movimiento recibe `404`, o se registra el movimiento y el borrado recibe `409`.
 
 Ejemplo PowerShell después del recorrido de autenticación (`$base` y `$headers` siguen definidos con una sesión admin vigente):
 
@@ -302,25 +331,26 @@ src/
   config/environment.ts   # Validación de configuración
   config/runtime-environment.ts # Configuración HTTP y PostgreSQL
   database/               # Conexión, comandos y migración inicial
-  common/                 # Paginación y esquemas OpenAPI compartidos
+  common/                 # Paginación, errores de BD y esquemas OpenAPI
   users/                  # Entidad, administración y roles
   products/               # Entidad, catálogo (controlador, DTOs, servicio) y stock
   movements/entities/     # Historial con usuario y producto
   seed/                   # Credenciales, hash y carga transaccional
   auth/                   # Login, JWT, sesiones y guards
-  health/                 # Endpoint público de salud
+  health/                 # Salud del proceso y readiness de PostgreSQL
   app.module.ts           # Configuración global y módulos
   configure-app.ts        # Prefijo, pipe, Swagger y hooks compartidos
   swagger.ts              # Documento OpenAPI y Swagger UI en /api/v1/docs
   bootstrap.ts            # Creación y arranque del servidor
   main.ts                 # Punto de entrada del proceso
 test/                     # Unidades e integración HTTP/PostgreSQL
+postman/                  # Colección Postman de la API
 specs/                    # Especificaciones, planes y tareas versionadas
 docs/                     # Decisiones y overview por commit
 .github/workflows/ci.yml   # Checks automatizados
 ```
 
-La siguiente fase implementará los movimientos de inventario con su propia especificación antes del código. Consulta la [guía del grupo](docs/CONTRIBUTING.md) para preparar tu incremento.
+Cada incremento nuevo empieza por su propia especificación antes del código. Consulta la [guía del grupo](docs/CONTRIBUTING.md) para preparar tu incremento.
 
 ## Entrega final pendiente
 

@@ -5,7 +5,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { DataSource, QueryFailedError } from 'typeorm';
+import {
+  isConstraintViolation,
+  MOVEMENT_PRODUCT_FK,
+} from '../../common/database-errors';
 import { buildPage, Page, pageParams } from '../../common/pagination';
+import { StockMovement } from '../../movements/entities/stock-movement.entity';
 import { Product } from '../entities/products.entity';
 import { ProductView, productView } from '../products.view';
 import {
@@ -15,6 +20,8 @@ import {
 } from '../DTOs/products.dto';
 
 const SKU_UNIQUE_CONSTRAINT = 'products_sku_key';
+const HAS_MOVEMENTS =
+  'El producto tiene movimientos; desactívalo con PATCH /products/:id/status.';
 
 /** Escapa los comodines de LIKE para que `%`, `_` y `\` se busquen como texto. */
 export function escapeLike(text: string): string {
@@ -107,6 +114,34 @@ export class ProductsService {
     return this.changeCatalogFields(id, (product) =>
       product.active === active ? {} : { active },
     );
+  }
+
+  /**
+   * Elimina un producto sin movimientos (RN-08). Bloquea la fila igual que el
+   * registro de movimientos, así que ambos quedan serializados; la FK RESTRICT
+   * del historial es la red de seguridad.
+   */
+  async remove(id: string): Promise<void> {
+    try {
+      await this.source.transaction(async (manager) => {
+        const repository = manager.getRepository(Product);
+        const product = await repository
+          .createQueryBuilder('product')
+          .where('product.id = :id', { id })
+          .setLock('pessimistic_write')
+          .getOne();
+        if (!product) throw new NotFoundException('Producto no encontrado.');
+        if (
+          await manager.getRepository(StockMovement).existsBy({ productId: id })
+        )
+          throw new ConflictException(HAS_MOVEMENTS);
+        await repository.delete({ id });
+      });
+    } catch (error) {
+      if (isConstraintViolation(error, '23503', MOVEMENT_PRODUCT_FK))
+        throw new ConflictException(HAS_MOVEMENTS);
+      throw error;
+    }
   }
 
   /**
