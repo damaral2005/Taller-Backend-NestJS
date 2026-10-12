@@ -1,6 +1,6 @@
 # Especificación 001 — API de inventario
 
-Fecha: actualización 2026-10-08. Estado: incrementos 002 a 006 publicados/verificados, catálogo probado manualmente por usuario.el 007 retira el segundo factor (la autenticación queda solo con JWT). Movimientos implementados/verificados localmente en 008 (`codex/feature-movements` desde `815c649`); publicación/CI posteriores al commit. Postman, informe final y despliegue pendientes.
+Fecha: actualización 2026-10-08. Estado: incrementos 002 a 006 publicados/verificados, catálogo probado manualmente por usuario.el 007 retira el segundo factor (la autenticación queda solo con JWT). Movimientos implementados/verificados localmente en 008 (`codex/feature-movements` desde `815c649`); publicación/CI posteriores al commit. El incremento 011 completa el CRUD de productos y usuarios, añade readiness y versiona la colección Postman. Informe final y primer despliegue pendientes.
 
 ## Objetivo y alcance
 
@@ -32,6 +32,10 @@ No se incluyen inicialmente ventas, facturación, proveedores, múltiples bodega
 - RN-05: productos inactivos conservan su historial y no admiten nuevos movimientos.
 - RN-06: una segunda ejecución del seed conserva los usuarios y movimientos existentes, no reinicia contraseñas ni borra datos de negocio.
 - RN-07: los roles válidos son `admin` y `operador`; se validan en el servidor. Ninguna petición pública puede conceder privilegios.
+- RN-08: solo se elimina físicamente un producto sin movimientos; con historial se desactiva (011).
+- RN-09: admin puede cambiar username y contraseña de un usuario; una contraseña nueva revoca sus demás sesiones y reinicia su bloqueo (011).
+- RN-10: solo se elimina físicamente un usuario sin movimientos; nunca el último admin ni el propio actor (011).
+- RN-11: `GET /health/ready` comprueba PostgreSQL; `GET /health` no consulta la base (011).
 
 ## Autenticación y autorización
 
@@ -43,28 +47,33 @@ El incremento 004 implementó JWT con sesión, identidad, logout revocable y gua
 - Cada JWT de acceso identifica usuario y sesión; las rutas protegidas verifican expiración, sesión activa y rol vigente. Cambiar un rol afecta los permisos de las siguientes peticiones.
 - `logout` revoca la sesión en PostgreSQL; su JWT se rechaza en las siguientes peticiones. No basta con borrar el token en Postman.
 - Se limitan los intentos de login por cuenta (5 fallos, 15 minutos) y por IP (20 por minuto).
-- Recuperación/cambio de contraseña y rotación de claves siguen pendientes para mantenimiento.
+- Un admin puede cambiar la contraseña de un usuario (011). El cambio por el propio usuario, la recuperación y la rotación de claves siguen pendientes para mantenimiento.
 
 ## Contratos HTTP
 
 Prefijo: `/api/v1`. La tabla resume las rutas implementadas; DTOs, respuestas y límites completos se concretan en las especificaciones de cada incremento.
 
-Actualmente health, seis rutas `/auth/*`, tres rutas `/users`, cinco rutas `/products` y dos rutas `/movements` están implementadas. Contratos exactos en [la especificación 006](../006-catalog/spec.md) y [la 008](../008-movements/spec.md); POST de movimientos devuelve `{movement,stock}` y GET historial con responsable desde sesión. Persistencia/seed se verifican según 003; el primer enrolamiento se emite por script privado según 004 y la creación administrativa entrega credencial limitada según 005.
+Actualmente están implementadas 19 operaciones: dos de health, tres `/auth/*`, seis `/users`, seis `/products` y dos `/movements`. Contratos exactos en [la especificación 006](../006-catalog/spec.md), [la 008](../008-movements/spec.md) y [la 011](../011-crud-completion/spec.md); POST de movimientos devuelve `{movement,stock}` y GET historial con responsable desde sesión. Persistencia/seed se verifican según 003; el primer enrolamiento se emite por script privado según 004 y la creación administrativa entrega credencial limitada según 005.
 
 | Método y ruta                | Acceso                          | Parámetros principales                    | Resultado esperado                                                                   |
 | ---------------------------- | ------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------ |
 | `GET /health`                | Público                         | Ninguno                                   | `200`: proceso disponible; no garantiza conexión a BD.                               |
+| `GET /health/ready`          | Público                         | Ninguno                                   | `200`: PostgreSQL responde; `503`: base de datos no disponible.                      |
 | `POST /auth/login`           | Público, con límite de intentos | `username`, `password`                    | `200`: JWT de acceso; `401`: credenciales inválidas.                                 |
 | `POST /auth/logout`          | Autenticado                     | Bearer JWT                                | `204`: sesión revocada.                                                              |
 | `GET /auth/me`               | Autenticado                     | Bearer JWT                                | `200`: identidad y rol, sin secretos.                                                |
 | `POST /users`                | Admin                           | `username`, `password`, `role`            | `201`: usuario seguro; `409`: username duplicado.                                    |
 | `GET /users`                 | Admin                           | `page`, `limit`                           | `200`: usuarios paginados, sin secretos.                                             |
+| `GET /users/:id`             | Admin                           | UUID                                      | `200`: usuario seguro; `404`: usuario inexistente.                                   |
+| `PATCH /users/:id`           | Admin                           | UUID, `username?`, `password?`            | `200`: usuario actualizado; `409`: username duplicado.                               |
+| `DELETE /users/:id`          | Admin                           | UUID                                      | `204`; `409`: último admin, propio usuario o con movimientos.                        |
 | `PATCH /users/:id/role`      | Admin                           | UUID, `role`                              | `200`: rol actualizado; `404`: usuario inexistente.                                  |
 | `POST /products`             | Admin                           | `sku`, `name`, `description?`             | `201`: producto con saldo cero; `409`: SKU duplicado.                                |
 | `GET /products`              | Autenticado                     | `page`, `limit`, `search?`, `active?`     | `200`: catálogo paginado con existencias.                                            |
 | `GET /products/:id`          | Autenticado                     | UUID                                      | `200`: producto y saldo; `404`: producto inexistente.                                |
 | `PATCH /products/:id`        | Admin                           | UUID y campos de catálogo opcionales      | `200`: producto actualizado; no admite cambios de saldo.                             |
 | `PATCH /products/:id/status` | Admin                           | UUID, `active`                            | `200`: producto activado o desactivado.                                              |
+| `DELETE /products/:id`       | Admin                           | UUID                                      | `204`; `409`: el producto tiene movimientos.                                         |
 | `POST /movements`            | Admin u operador                | `productId`, `type`, `quantity`, `reason` | `201`: movimiento y saldo resultante; `409`: saldo insuficiente o producto inactivo. |
 | `GET /movements`             | Autenticado                     | `page`, `limit`, `productId?`, `type?`    | `200`: historial paginado con responsable y fecha.                                   |
 
@@ -72,16 +81,16 @@ Las rutas de la tabla son relativas al prefijo. `400` corresponde a parámetros 
 
 ## Trazabilidad de la rúbrica
 
-| ID   | Requisito                 | Peso | Criterio de aceptación y evidencia final                                                                                                                | Estado                                                                                                                                                 |
-| ---- | ------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| R-01 | Seed                      | 5%   | Script documentado crea `admin`, al menos un operador, productos y movimientos válidos; dos ejecuciones no duplican ni borran datos.                    | Implementado y verificado en commit 3                                                                                                                  |
-| R-02 | Autenticación JWT y 2FA   | 5%   | Login exige ambos factores; JWT protege rutas; logout revoca acceso; pruebas de fallos, expiración y reutilización.                                     | Implementado y verificado en commit 4; recuperación 2FA pendiente                                                                                      |
-| R-03 | Autorización              | 5%   | Admin y operador tienen permisos distintos; solo admin asigna roles; pruebas HTTP de `401`/`403` y cambio de rol.                                       | Implementado y verificado en 005: administración exclusiva para admin y roles vigentes                                                                 |
-| R-04 | Pruebas                   | 25%  | Jest y Supertest con BD de prueba PostgreSQL real; cobertura global mínima del 80% en líneas, sentencias, funciones y ramas, verificada en CI.          | 184 pruebas y cobertura local en 005; CI success de 004; ejecución remota 005 tras push                                                                |
-| R-05 | Persistencia              | 10%  | TypeORM guarda datos en PostgreSQL; migraciones reproducibles; constraints y transacciones probadas; datos sobreviven al reinicio.                      | Implementado y verificado en commit 3                                                                                                                  |
-| R-06 | Funcionalidades y Postman | 25%  | Catálogo, saldos y movimientos cumplen RN-01 a RN-07; colección JSON y entorno permiten recorrer casos exitosos y errores.                              | Parcial: catálogo y RN-01/RN-02/RN-05 (catálogo) en 006; movimientos y Postman pendientes                                                              |
-| R-07 | Informe                   | 10%  | Documenta cada endpoint, parámetros, respuestas, autenticación, autorización, persistencia y ejecución de pruebas con resultados reales.                | Parcial: Swagger UI y OpenAPI en `/api/v1/docs` documentan cada endpoint, parámetros, respuestas y autenticación (009); informe final pendiente        |
-| R-08 | Despliegue                | 15%  | API accesible en nube; pipeline ejecuta checks, pruebas y despliegue automatizado con migraciones; se aporta URL y evidencia de una ejecución correcta. | Parcial (010): pipeline `verify → deploy → smoke` en `main` y migraciones pre-deploy implementados; URL y run exitoso pendientes del primer despliegue |
+| ID   | Requisito                 | Peso | Criterio de aceptación y evidencia final                                                                                                                | Estado                                                                                                                                                  |
+| ---- | ------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R-01 | Seed                      | 5%   | Script documentado crea `admin`, al menos un operador, productos y movimientos válidos; dos ejecuciones no duplican ni borran datos.                    | Implementado y verificado en commit 3                                                                                                                   |
+| R-02 | Autenticación JWT y 2FA   | 5%   | Login exige ambos factores; JWT protege rutas; logout revoca acceso; pruebas de fallos, expiración y reutilización.                                     | Implementado y verificado en commit 4; recuperación 2FA pendiente                                                                                       |
+| R-03 | Autorización              | 5%   | Admin y operador tienen permisos distintos; solo admin asigna roles; pruebas HTTP de `401`/`403` y cambio de rol.                                       | Implementado y verificado en 005: administración exclusiva para admin y roles vigentes                                                                  |
+| R-04 | Pruebas                   | 25%  | Jest y Supertest con BD de prueba PostgreSQL real; cobertura global mínima del 80% en líneas, sentencias, funciones y ramas, verificada en CI.          | 184 pruebas y cobertura local en 005; CI success de 004; ejecución remota 005 tras push                                                                 |
+| R-05 | Persistencia              | 10%  | TypeORM guarda datos en PostgreSQL; migraciones reproducibles; constraints y transacciones probadas; datos sobreviven al reinicio.                      | Implementado y verificado en commit 3                                                                                                                   |
+| R-06 | Funcionalidades y Postman | 25%  | Catálogo, saldos y movimientos cumplen RN-01 a RN-07; colección JSON y entorno permiten recorrer casos exitosos y errores.                              | Catálogo (006), movimientos (008) y CRUD completo con RN-08 a RN-11 (011); colección Postman versionada en `postman/`, 619 aserciones sin fallos en 011 |
+| R-07 | Informe                   | 10%  | Documenta cada endpoint, parámetros, respuestas, autenticación, autorización, persistencia y ejecución de pruebas con resultados reales.                | Parcial: Swagger UI y OpenAPI en `/api/v1/docs` documentan cada endpoint, parámetros, respuestas y autenticación (009); informe final pendiente         |
+| R-08 | Despliegue                | 15%  | API accesible en nube; pipeline ejecuta checks, pruebas y despliegue automatizado con migraciones; se aporta URL y evidencia de una ejecución correcta. | Parcial (010): pipeline `verify → deploy → smoke` en `main` y migraciones pre-deploy implementados; URL y run exitoso pendientes del primer despliegue  |
 
 Entrega transversal: README reproducible, URL del repositorio, URL de API, informe para Intu y commits que permitan verificar la participación del grupo. La suma de pesos es 100%.
 
@@ -100,6 +109,6 @@ Entrega transversal: README reproducible, URL del repositorio, URL de API, infor
 11. Reiniciar la API → persisten productos, saldos, movimientos y revocaciones.
 12. CI con cobertura por debajo del umbral o una prueba fallida → no despliega.
 
-El commit 1 verifica documentación; el 2 base/health; el 3 persistencia/seed; el 4 autenticación; el 5 administración de usuarios/roles, último admin y revalidación/concurrencia; el incremento 6 catálogo y permisos; el 7 retira el 2FA; el 8 entradas/salidas, saldo protegido e historial. Postman, informe final, recuperación 2FA y despliegue siguen pendientes.
+El commit 1 verifica documentación; el 2 base/health; el 3 persistencia/seed; el 4 autenticación; el 5 administración de usuarios/roles, último admin y revalidación/concurrencia; el incremento 6 catálogo y permisos; el 7 retira el 2FA; el 8 entradas/salidas, saldo protegido e historial. El incremento 9 documenta la API con Swagger, el 10 prepara el despliegue y el 11 completa el CRUD, readiness y la colección Postman. Informe final y primer despliegue siguen pendientes.
 
 Estimación de bloques completos sobre el código vigente: R-01 (5) + R-02 (5) + R-03 (5) + R-04 (25) + R-05 (10) = 50%. No garantiza la nota del docente; al ampliar dominio debe mantenerse cobertura y completar R-06/R-07/R-08.

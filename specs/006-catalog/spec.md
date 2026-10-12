@@ -54,6 +54,8 @@ Producto expuesto: exactamente `{id,sku,name,description,active,stock,createdAt,
 
 ## Fuera de alcance
 
+> La eliminación física de productos sin movimientos se incorpora en [la especificación 011](../011-crud-completion/spec.md) (D-59).
+
 Eliminación física de productos, edición del SKU, imágenes, categorías, precios, movimientos y cualquier escritura del saldo.
 
 ## Fuentes técnicas

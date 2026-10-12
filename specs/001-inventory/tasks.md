@@ -107,6 +107,14 @@ Fecha: actualización 2026-10-12. Una marca completada corresponde a trabajo ver
 - [ ] C10-03: código, workflow y pruebas verificados (468 pruebas/19 suites, cobertura >=80%); falta configurar Railway/GitHub, merge y primer despliegue según `specs/010-deployment/tasks.md`.
 - [ ] C10-04: overview `docs/commits/010.md` con URL, run de despliegue y límites.
 
+## Incremento 011 — CRUD completo y readiness
+
+- [x] C11-01: spec, plan y tareas en `specs/011-crud-completion` contrastados con el código antes de implementar; decisiones D-59 a D-64 aprobadas por el usuario el 2026-10-12.
+- [x] C11-02: `DELETE /products/:id`, `GET`/`PATCH`/`DELETE /users/:id` y `GET /health/ready` implementados sin migración ni dependencias nuevas; Swagger con 19 operaciones.
+- [x] C11-03: pruebas Jest/Supertest con PostgreSQL real, incluida la concurrencia de CA-05, CA-14 y CA-18; resultados medidos en `docs/commits/011.md`.
+- [x] C11-04: colección Postman versionada con la carpeta 07 actualizada; corrida completa sin fallos.
+- [ ] C11-05: revisión del grupo, commit, push y CI.
+
 ## Entrega completa — seguimiento
 
 - [x] F-01: autenticación JWT con sesiones y logout revocable (004); segundo factor retirado en 007.
@@ -114,7 +122,7 @@ Fecha: actualización 2026-10-12. Una marca completada corresponde a trabajo ver
 - [x] F-03: catálogo y consulta de existencias con validaciones, filtros, paginación y permisos verificados en 006. Cambiar existencias mediante movimientos sigue en F-04.
 - [x] F-04: entradas/salidas auditadas, atomicidad y concurrencia verificadas en 007.
 - [x] F-05: 439 pruebas/17 suites y cobertura >=80% de las 50 fuentes con HTTP/PostgreSQL real en 007; mantener umbral en siguientes cambios y verificar CI tras push.
-- [ ] F-06: colección y entorno Postman utilizables sin secretos reales.
+- [x] F-06: colección Postman autocontenida en `postman/`, solo con contraseñas de demostración; 619 aserciones sin fallos en 011.
 - [ ] F-07: README reproducible e informe detallado con ejecución de pruebas.
 - [ ] F-08: despliegue en nube, pipeline automatizado, URLs y evidencias; especificado en 010.
 - [ ] F-09: comprobar participación real mediante commits y preparar el informe para Intu.

@@ -39,14 +39,22 @@ interface OpenApiDocument {
   };
 }
 
-const PUBLIC = ['GET /api/v1/health', 'POST /api/v1/auth/login'];
+const PUBLIC = [
+  'GET /api/v1/health',
+  'GET /api/v1/health/ready',
+  'POST /api/v1/auth/login',
+];
 const ADMIN_ONLY = [
   'POST /api/v1/users',
   'GET /api/v1/users',
+  'GET /api/v1/users/{id}',
+  'PATCH /api/v1/users/{id}',
+  'DELETE /api/v1/users/{id}',
   'PATCH /api/v1/users/{id}/role',
   'POST /api/v1/products',
   'PATCH /api/v1/products/{id}',
   'PATCH /api/v1/products/{id}/status',
+  'DELETE /api/v1/products/{id}',
 ];
 const ANY_ROLE = [
   'GET /api/v1/auth/me',
@@ -60,17 +68,22 @@ const PROTECTED = [...ADMIN_ONLY, ...ANY_ROLE];
 
 const SUCCESS: Record<string, string> = {
   'GET /api/v1/health': '200',
+  'GET /api/v1/health/ready': '200',
   'POST /api/v1/auth/login': '200',
   'GET /api/v1/auth/me': '200',
   'POST /api/v1/auth/logout': '204',
   'POST /api/v1/users': '201',
   'GET /api/v1/users': '200',
+  'GET /api/v1/users/{id}': '200',
+  'PATCH /api/v1/users/{id}': '200',
+  'DELETE /api/v1/users/{id}': '204',
   'PATCH /api/v1/users/{id}/role': '200',
   'POST /api/v1/products': '201',
   'GET /api/v1/products': '200',
   'GET /api/v1/products/{id}': '200',
   'PATCH /api/v1/products/{id}': '200',
   'PATCH /api/v1/products/{id}/status': '200',
+  'DELETE /api/v1/products/{id}': '204',
   'POST /api/v1/movements': '201',
   'GET /api/v1/movements': '200',
 };
@@ -120,12 +133,12 @@ describe('Documentación OpenAPI (Swagger)', () => {
     });
   });
 
-  it('S-02: documenta exactamente las 14 operaciones con el prefijo /api/v1', () => {
+  it('S-02: documenta exactamente las 19 operaciones con el prefijo /api/v1', () => {
     const operations = Object.entries(doc.paths).flatMap(([path, methods]) =>
       Object.keys(methods).map((method) => `${method.toUpperCase()} ${path}`),
     );
     expect(operations.sort()).toEqual([...PUBLIC, ...PROTECTED].sort());
-    expect(operations).toHaveLength(14);
+    expect(operations).toHaveLength(19);
   });
 
   it('cada operación tiene etiqueta del módulo, resumen y respuesta de éxito', () => {
@@ -161,12 +174,19 @@ describe('Documentación OpenAPI (Swagger)', () => {
   it('documenta los conflictos, inexistentes y el límite de peticiones', () => {
     for (const key of [
       'POST /api/v1/users',
+      'PATCH /api/v1/users/{id}',
+      'DELETE /api/v1/users/{id}',
       'PATCH /api/v1/users/{id}/role',
       'POST /api/v1/products',
+      'DELETE /api/v1/products/{id}',
       'POST /api/v1/movements',
     ])
       expect(operation(key).responses['409']).toBeDefined();
     for (const key of [
+      'GET /api/v1/users/{id}',
+      'PATCH /api/v1/users/{id}',
+      'DELETE /api/v1/users/{id}',
+      'DELETE /api/v1/products/{id}',
       'PATCH /api/v1/users/{id}/role',
       'GET /api/v1/products/{id}',
       'PATCH /api/v1/products/{id}',
@@ -180,6 +200,16 @@ describe('Documentación OpenAPI (Swagger)', () => {
       'POST /api/v1/auth/logout',
     ])
       expect(operation(key).responses['429']).toBeDefined();
+
+    expect(
+      operation('GET /api/v1/health/ready').responses['503'],
+    ).toBeDefined();
+    expect(operation('GET /api/v1/health').responses['503']).toBeUndefined();
+    for (const key of [
+      'DELETE /api/v1/users/{id}',
+      'DELETE /api/v1/products/{id}',
+    ])
+      expect(operation(key).responses['204'].content).toBeUndefined();
 
     const error = operation('POST /api/v1/products').responses['409'].content![
       'application/json'
@@ -211,6 +241,17 @@ describe('Documentación OpenAPI (Swagger)', () => {
       },
     });
     expect(schema('UpdateProductDto').required).toBeUndefined();
+    expect(schema('UpdateUserDto')).toMatchObject({
+      properties: {
+        username: { pattern: '^[a-z0-9][a-z0-9._-]{2,63}$', maxLength: 64 },
+        password: { minLength: 12, maxLength: 128 },
+      },
+    });
+    expect(schema('UpdateUserDto').required).toBeUndefined();
+    expect(Object.keys(schema('UpdateUserDto').properties!).sort()).toEqual([
+      'password',
+      'username',
+    ]);
     expect(schema('SetProductStatusDto')).toMatchObject({
       required: ['active'],
       properties: { active: { type: 'boolean' } },
@@ -245,9 +286,15 @@ describe('Documentación OpenAPI (Swagger)', () => {
       'query:limit',
       'query:page',
     ]);
-    expect(
-      params('PATCH /api/v1/products/{id}/status')['path:id'],
-    ).toMatchObject({ format: 'uuid' });
+    for (const key of [
+      'PATCH /api/v1/products/{id}/status',
+      'DELETE /api/v1/products/{id}',
+      'GET /api/v1/users/{id}',
+      'PATCH /api/v1/users/{id}',
+      'DELETE /api/v1/users/{id}',
+      'PATCH /api/v1/users/{id}/role',
+    ])
+      expect(params(key)['path:id']).toMatchObject({ format: 'uuid' });
   });
 
   it('S-04: respuestas coinciden con las proyecciones y no exponen secretos', () => {

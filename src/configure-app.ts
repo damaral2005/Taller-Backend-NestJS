@@ -20,7 +20,12 @@ export function configureApplication(
     express.set('trust proxy', trustProxyHops);
   }
   app.use(
-    ['/api/v1/auth', '/api/v1/users', '/api/v1/movements'],
+    [
+      '/api/v1/auth',
+      '/api/v1/users',
+      '/api/v1/movements',
+      '/api/v1/health/ready',
+    ],
     (
       _request: unknown,
       response: { setHeader(name: string, value: string): void },

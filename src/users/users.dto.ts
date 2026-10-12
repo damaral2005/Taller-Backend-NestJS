@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsIn, IsString, Length, Matches } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsIn, IsString, Length, Matches, ValidateIf } from 'class-validator';
 import { USER_ROLES, UserRole } from './entities/user.entity';
 import { PaginationQueryDto } from '../common/pagination';
 
@@ -32,6 +32,33 @@ export class CreateUserDto {
   @ApiProperty({ enum: USER_ROLES, example: 'operador' })
   @IsIn(USER_ROLES)
   role!: UserRole;
+}
+
+export class UpdateUserDto {
+  // Ningún campo admite null: solo se omite cuando es undefined.
+  @ApiPropertyOptional({
+    pattern: USERNAME_PATTERN.source,
+    minLength: 3,
+    maxLength: 64,
+    description: 'Envía al menos `username` o `password`.',
+    example: 'operador_renombrado',
+  })
+  @ValidateIf((_object, value) => value !== undefined)
+  @IsString()
+  @Matches(USERNAME_PATTERN)
+  username?: string;
+
+  @ApiPropertyOptional({
+    minLength: 12,
+    maxLength: 128,
+    format: 'password',
+    description:
+      'Contraseña nueva; revoca las demás sesiones del usuario editado.',
+  })
+  @ValidateIf((_object, value) => value !== undefined)
+  @IsString()
+  @Length(12, 128)
+  password?: string;
 }
 
 export class ChangeRoleDto {
