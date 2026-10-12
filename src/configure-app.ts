@@ -1,4 +1,5 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { setupSwagger } from './swagger';
 
 export function configureApplication(app: INestApplication): void {
   app.use(
@@ -20,5 +21,6 @@ export function configureApplication(app: INestApplication): void {
       forbidNonWhitelisted: true,
     }),
   );
+  setupSwagger(app);
   app.enableShutdownHooks();
 }

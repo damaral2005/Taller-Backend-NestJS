@@ -94,6 +94,10 @@ Contratos, decisiones y criterios J-01 a J-11 previos al código en `specs/007-j
 
 Especificación previa al código en `specs/008-movements`: POST/GET de movimientos para admin/operador. Cantidad entera positiva, motivo auditado, responsable de sesión, producto activo y saldo protegido ante concurrencia. Transacción con bloqueo de fila, revalidación de sesión tras esperar y rollback conjunto de stock/registro. Historial paginado con filtros y proyección segura. Reutiliza esquema/guards/paginación; sin dependencias nuevas ni migración. Supertest/PostgreSQL verifica fallos, límites, espera/rollback y persistencia; guía manual y overview registran evidencias. R-06 permanece parcial hasta Postman.
 
+## Incremento 9 — documentación OpenAPI
+
+Mensaje: `feat: add OpenAPI documentation with Swagger UI`. Contratos y decisiones en `specs/009-swagger` antes del código. `@nestjs/swagger` publica Swagger UI en `/api/v1/docs` y el JSON en `/api/v1/docs-json`, con decoradores explícitos y esquemas de respuesta. No cambia contratos ni esquema. Resultados en `docs/commits/009.md`.
+
 ## Incrementos posteriores
 
 | Incremento   | Alcance y evidencias                                                                                                                  |

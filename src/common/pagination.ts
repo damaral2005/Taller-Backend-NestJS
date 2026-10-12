@@ -1,3 +1,4 @@
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, Matches } from 'class-validator';
 
 /**
@@ -5,11 +6,25 @@ import { IsOptional, IsString, Matches } from 'class-validator';
  * signos, espacios, fracciones ni ceros iniciales: page 1–10000 y limit 1–100.
  */
 export class PaginationQueryDto {
+  @ApiPropertyOptional({
+    type: 'integer',
+    minimum: 1,
+    maximum: 10000,
+    default: 1,
+    description: 'Página, en dígitos sin signos ni ceros iniciales.',
+  })
   @IsOptional()
   @IsString()
   @Matches(/^(?:[1-9]\d{0,3}|10000)$/)
   page?: string;
 
+  @ApiPropertyOptional({
+    type: 'integer',
+    minimum: 1,
+    maximum: 100,
+    default: 20,
+    description: 'Registros por página, en dígitos sin ceros iniciales.',
+  })
   @IsOptional()
   @IsString()
   @Matches(/^(?:[1-9]|[1-9]\d|100)$/)

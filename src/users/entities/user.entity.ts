@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 
 export type UserRole = 'admin' | 'operador';
+export const USER_ROLES: readonly UserRole[] = ['admin', 'operador'];
 
 @Entity('users')
 @Check('users_username_format', `"username" ~ '^[a-z0-9][a-z0-9._-]{2,63}$'`)

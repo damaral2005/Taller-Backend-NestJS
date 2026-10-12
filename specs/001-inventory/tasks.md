@@ -93,6 +93,13 @@ Fecha: actualización 2026-10-08. Una marca completada corresponde a trabajo ver
 - [ ] C7-06: commit con identidad real, push y CI posteriores; evidencia en el cierre.
 - [ ] C7-07: presentar overview y avance; revisión antes del siguiente incremento.
 
+## Incremento 009 — documentación OpenAPI
+
+- [x] C9-01: usuario aprueba Swagger con opciones recomendadas; contratos y decisiones D-47 a D-50 en `specs/009-swagger` antes del código.
+- [x] C9-02: `@nestjs/swagger` 12.0.2, UI en `/api/v1/docs`, JSON en `/api/v1/docs-json` y 14 operaciones documentadas con roles, parámetros y respuestas.
+- [x] C9-03: 450 pruebas/18 suites y cobertura >=80%; lint/tipos/build/formato y smoke compilado correctos; README y overview actualizados.
+- [ ] C9-04: commit local; push y CI solo con autorización.
+
 ## Entrega completa — seguimiento
 
 - [x] F-01: autenticación JWT con sesiones y logout revocable (004); segundo factor retirado en 007.
