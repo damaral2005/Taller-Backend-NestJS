@@ -41,7 +41,7 @@ jobs:
           cache: npm
 
       - name: Instalar dependencias desde el lockfile
-        run: npm ci
+        run: npm ci --include=dev
 
       - name: Comprobar formato (Prettier)
         run: npm run format:check
