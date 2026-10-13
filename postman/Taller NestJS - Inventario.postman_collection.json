@@ -1,11 +1,11 @@
 {
   "info": {
-    "_postman_id": "3ce6a40e-920f-43d7-96d3-ad29b2b0f89b",
-    "name": "Taller Backend NestJS — Inventario (JWT)",
+    "_postman_id": "b8386368-b577-4686-a570-64e19ba12aca",
+    "name": "Taller NestJS - Inventario",
     "description": "# Taller Backend NestJS — API de inventario (JWT)\n\nColección **autocontenida** (sin archivo de entorno): las variables viven dentro de la colección. Cubre health y readiness, login JWT, usuarios/roles, productos, movimientos y, en la carpeta **07**, Swagger y el CRUD completo del incremento 011 (DELETE de productos, GET/PATCH/DELETE de usuarios).\n\n## Cómo usarla\n1. Importa este archivo en Postman (**Import**).\n2. Levanta la API: `npm run db:up && npm run migration:run && npm run seed && npm run start:dev`.\n3. Abre la colección → pestaña **Variables** y pon en `adminPassword` / `operatorPassword` los valores de `SEED_ADMIN_PASSWORD` / `SEED_OPERATOR_PASSWORD` de tu `.env` (en *Current value*). Si tu API no corre en `http://localhost:3000`, cambia `baseUrl`.\n4. Ejecuta con el *Collection Runner* (orden 00 → 10) o petición por petición. Empieza siempre por **01 Sesiones**: guarda los JWT en `adminToken` y `operatorToken`.\n5. Por línea de comandos: `postman collection run \"postman/Taller Backend NestJS — Inventario (JWT).postman_collection.json\"` (o `newman run` con la misma ruta).\n\n## Notas\n- Los JWT duran 15 min; si expiran (401), vuelve a ejecutar *01 Sesiones*.\n- Los usuarios y productos con movimientos no se pueden eliminar, así que cada corrida deja usuarios `qa_*` y productos `QA-*` en la BD. Para una BD limpia: `docker compose down -v` y repetir migración y seed.\n- Límite de 20 peticiones/min por IP y ruta en `/auth/*`: espera ~1 min entre corridas completas.\n- `adminPassword` y `operatorPassword` traen los valores de demostración de `.env.example`; nunca guardes aquí contraseñas reales.\n",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "54517210",
-    "_collection_link": "https://go.postman.co/collection/54517210-3ce6a40e-920f-43d7-96d3-ad29b2b0f89b?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/54517210-b8386368-b577-4686-a570-64e19ba12aca?source=collection_link"
   },
   "item": [
     {
@@ -11341,6 +11341,20 @@
       "description": "Ejecútala siempre al final y espera un minuto antes de otra corrida completa."
     }
   ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          "// Desde la 2.ª iteración, espera 61 s antes de la primera petición\r",
+          "if (pm.info.iteration > 0 && pm.info.requestName === 'GET /health') {\r",
+          "  setTimeout(() => {}, 61000);\r",
+          "}"
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ],
   "variable": [
     {
       "key": "baseUrl",
@@ -11387,16 +11401,13 @@
       "value": ""
     },
     {
-      "key": "bearer_token_12y9",
-      "secret": true
+      "key": "bearer_token_12y9"
     },
     {
-      "key": "bearer_token_14lb",
-      "secret": true
+      "key": "bearer_token_14lb"
     },
     {
-      "key": "basic_auth_0oii",
-      "secret": true
+      "key": "basic_auth_0oii"
     },
     {
       "key": "adminId",
