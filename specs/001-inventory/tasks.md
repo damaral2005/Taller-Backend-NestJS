@@ -1,6 +1,6 @@
 # Tareas 001 — seguimiento
 
-Fecha: actualización 2026-10-12. Una marca completada corresponde a trabajo verificable, no a comportamiento futuro.
+Fecha: auditoría 2026-10-13. Las marcas distinguen comportamiento verificado, requisitos originales y confirmaciones del usuario.
 
 ## Commit 1 — documentación
 
@@ -104,8 +104,8 @@ Fecha: actualización 2026-10-12. Una marca completada corresponde a trabajo ver
 
 - [x] C10-01: rama `feat-despliegue` desde `21dd53a`; spec, plan y tareas en `specs/010-deployment` antes del código, con decisiones propuestas D-51 a D-58.
 - [x] C10-02: usuario aprueba D-51 a D-58 el 2026-10-12; despliegue solo desde `main`.
-- [ ] C10-03: código, workflow y pruebas verificados (468 pruebas/19 suites, cobertura >=80%); falta configurar Railway/GitHub, merge y primer despliegue según `specs/010-deployment/tasks.md`.
-- [ ] C10-04: overview `docs/commits/010.md` con URL, run de despliegue y límites.
+- [x] C10-03: integrado por PR #4; main 635e928 con verify/deploy/smoke success run 38324403873 y API pública comprobada el 2026-10-13.
+- [x] C10-04: cierre docs/commits/010.md con URL, run y límites de evidencia privada.
 
 ## Incremento 011 — CRUD completo y readiness
 
@@ -113,16 +113,16 @@ Fecha: actualización 2026-10-12. Una marca completada corresponde a trabajo ver
 - [x] C11-02: `DELETE /products/:id`, `GET`/`PATCH`/`DELETE /users/:id` y `GET /health/ready` implementados sin migración ni dependencias nuevas; Swagger con 19 operaciones.
 - [x] C11-03: pruebas Jest/Supertest con PostgreSQL real, incluida la concurrencia de CA-05, CA-14 y CA-18; resultados medidos en `docs/commits/011.md`.
 - [x] C11-04: colección Postman versionada con la carpeta 07 actualizada; corrida completa sin fallos.
-- [ ] C11-05: revisión del grupo, commit, push y CI.
+- [x] C11-05: main 635e928 publicada; CI/deploy success verificados. Revisión del grupo se conserva en C11-01 de su spec.
 
 ## Entrega completa — seguimiento
 
-- [x] F-01: autenticación JWT con sesiones y logout revocable (004); segundo factor retirado en 007.
+- [x] F-01: autenticación JWT, sesiones, logout y rutas protegidas verificados. El usuario excluye 2FA del alcance vigente el 2026-10-13 (D-65).
 - [x] F-02: administración/roles y `401`/`403` verificados en 005; aplicar los mismos guards a inventario al crear esas rutas.
 - [x] F-03: catálogo y consulta de existencias con validaciones, filtros, paginación y permisos verificados en 006. Cambiar existencias mediante movimientos sigue en F-04.
-- [x] F-04: entradas/salidas auditadas, atomicidad y concurrencia verificadas en 007.
-- [x] F-05: 439 pruebas/17 suites y cobertura >=80% de las 50 fuentes con HTTP/PostgreSQL real en 007; mantener umbral en siguientes cambios y verificar CI tras push.
+- [x] F-04: entradas/salidas, atomicidad/concurrencia e historial verificados en 008 y regresiones actuales.
+- [x] F-05: auditoría 2026-10-13: 554 pruebas/22 suites, cobertura >=80% sobre 55 fuentes; CI success 38324403873.
 - [x] F-06: colección Postman autocontenida en `postman/`, solo con contraseñas de demostración; 619 aserciones sin fallos en 011.
-- [ ] F-07: README reproducible e informe detallado con ejecución de pruebas.
-- [ ] F-08: despliegue en nube, pipeline automatizado, URLs y evidencias; especificado en 010.
-- [ ] F-09: comprobar participación real mediante commits y preparar el informe para Intu.
+- [ ] F-07: README reproducible actualizado; informe terminado según usuario, pendiente de compartir para revisar contenido.
+- [x] F-08: Railway, URL pública y pipeline verify/deploy/smoke exitosos; evidencia en cierre 010/auditoría.
+- [ ] F-09: confirmar participación y adjunto del informe en Intu; informe preparado según usuario.

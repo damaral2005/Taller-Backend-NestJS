@@ -1,10 +1,10 @@
 # Especificación 011 — Completar CRUD de productos y usuarios, y readiness
 
-Fecha: 2026-10-12. Estado: **propuesta contrastada con el código** (rama `feat/update-methods`), pendiente de revisión del grupo antes del código. El número 011 está libre en todas las ramas (specs hasta 010, overviews hasta 009). Decisiones propuestas: D-59 a D-64.
+Fecha: implementación 2026-10-12; auditoría 2026-10-13. Estado: implementado/publicado en main `635e928`; CI y despliegue exitosos en run 38324403873. Contratos contrastados antes del código y decisiones D-59 a D-64 registradas. La auditoría repite las verificaciones actuales sin modificar implementación.
 
 ## Contexto
 
-La carpeta **07 PENDIENTES** de la colección Postman define cinco rutas que todavía no existen. Hoy fallan 12 aserciones en 11 peticiones. Todas fallan porque el router de NestJS devuelve su `404` genérico (`Cannot DELETE /api/v1/...`), no por un error de la colección.
+Antes de este incremento, la carpeta **07 PENDIENTES** definía cinco rutas inexistentes y fallaban 12 aserciones en 11 peticiones. En main ya están implementadas y la carpeta se actualizó a CRUD, Swagger y readiness; el contexto anterior se conserva como motivo del cambio, no como fallo actual.
 
 Swagger y despliegue ya están implementados y quedan fuera de este incremento. Las rutas nuevas sí deben quedar documentadas en Swagger.
 

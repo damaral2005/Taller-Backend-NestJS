@@ -29,12 +29,12 @@ Decisiones del commit 3:
 
 El código propio se compila a CommonJS; NestJS 12 distribuye dependencias ESM. Los scripts de pruebas habilitan las VM de módulos de Node para que Jest pueda cargarlas, según su documentación oficial. No se simula Nest ni se excluyen estas pruebas para resolver la compatibilidad.
 
-| ID   | Decisión pendiente                                                                                                  | Resolver antes de                        |
-| ---- | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| P-04 | Recuperación 2FA y rotación de claves; autenticación resuelta en 004 y política de último admin concretada en 005.  | Ampliar mantenimiento                    |
-| P-05 | Campos exactos de DTOs, paginación y formato uniforme de errores.                                                   | Implementar cada ruta                    |
-| P-06 | Integrantes y autoría de contribuciones reales.                                                                     | Revisar participación y preparar entrega |
-| P-07 | Resuelta en 010 (D-51 a D-58): Railway, PostgreSQL gestionado, secretos en Railway/GitHub y migraciones pre-deploy. | Cerrada                                  |
+| ID   | Decisión pendiente                                                                                                     | Resolver antes de                        |
+| ---- | ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| P-04 | Rotación de claves y recuperación de contraseña como mantenimiento opcional; recuperación 2FA fuera de alcance (D-65). | Ampliar mantenimiento                    |
+| P-05 | Campos exactos de DTOs, paginación y formato uniforme de errores.                                                      | Implementar cada ruta                    |
+| P-06 | Integrantes y autoría de contribuciones reales.                                                                        | Revisar participación y preparar entrega |
+| P-07 | Resuelta en 010 (D-51 a D-58): Railway, PostgreSQL gestionado, secretos en Railway/GitHub y migraciones pre-deploy.    | Cerrada                                  |
 
 El ejemplo puede orientar la estructura modular y los DTOs; no demuestra cumplimiento de JWT, 2FA, roles, cobertura ni despliegue. No se reutilizan passwords, secretos o datos personales de otros entornos.
 
@@ -66,7 +66,7 @@ Decisiones del commit 6:
 
 Decisiones del commit 7:
 
-- D-37: se retira el segundo factor (TOTP). La autenticación queda en usuario y contraseña que producen un JWT; el 2FA no formaba parte de lo que se debía construir. Reemplaza D-07 (TOTP), D-21, D-22 y la parte TOTP de D-23, D-27 y D-28. Se pierde seguridad (una contraseña filtrada basta) y se compensa con scrypt, bloqueo de cuenta, límite por IP, JWT de 15 minutos y sesiones revocables.
+- D-37: se retira el segundo factor (TOTP) por decisión del grupo; autenticación con usuario y contraseña que producen un JWT. El enunciado original sí incluía 2FA; el usuario ratifica su exclusión del alcance vigente el 2026-10-13 (D-65). Reemplaza D-07, D-21, D-22 y la parte TOTP de D-23, D-27 y D-28 en el comportamiento implementado. Scrypt, bloqueo, límite por IP y sesiones revocables se conservan.
 - D-38: se conservan las sesiones en PostgreSQL (el JWT lleva `sub` y `sid`) para que `logout` revoque el token, y el bloqueo de cuenta de 5 fallos / 15 minutos con el límite de 20 peticiones por minuto por IP.
 - D-39: `POST /users` devuelve el usuario seguro sin credencial de enrolamiento; la regla de último admin queda solo en «último admin registrado». `auth:enroll`, `otpauth`, el cifrado AES-256-GCM y `TOTP_ENCRYPTION_KEY` desaparecen; un `.env` antiguo con esa variable se ignora.
 - D-40: migración incremental `1791244802000` que elimina las columnas TOTP y `auth_proofs`, sin editar las anteriores. Es destructiva: `down()` restaura la estructura vacía, no los secretos.
@@ -75,7 +75,7 @@ Decisiones del commit 8:
 
 - D-41: corregir imports conforme a las subcarpetas ya versionadas (`DTOs`, `controller`, `module`, `services`) y entidad `products.entity.ts`; conservar contratos y esquema. Restaurar `.env.example`, completar trazabilidad y sustituir resultados no reproducidos por mediciones locales de esta versión. Usuario autoriza commit y push de corrección a `feature-products` el 2026-10-08.
 
-Decisiones del incremento 007:
+Decisiones del incremento 008 (movimientos, renumerado tras retiro de 2FA):
 
 - D-42: rama `codex/feature-movements` desde catálogo verificado `815c649`. El usuario confirma el recorrido manual de 006 y autoriza el siguiente commit/push. Integración en main requiere revisar catálogo y movimientos; este incremento no hace merge.
 - D-43: admin/operador registran y consultan movimientos. Responsable desde sesión; proyección `{id,productId,type,quantity,reason,user:{id,username},createdAt}` y POST `{movement,stock}`. Sin claves de seed, hashes ni secretos; respuestas no-store.
@@ -109,3 +109,7 @@ Decisiones del incremento 011 (aprobadas por el usuario el 2026-10-12, tras cont
 - D-62: `MovementsService` traduce la violación de `stock_movements_user_id_fkey` a `401`, para que eliminar un usuario mientras registra un movimiento no produzca `500`.
 - D-63: `GET /health/ready` ejecuta `SELECT 1` con límite de 2 s y responde `503` genérico si falla. Railway y el smoke test siguen usando `GET /health`, que no consulta la base (D-12).
 - D-64: Swagger pasa de 14 a 19 operaciones y `ErrorStatus` admite `503`. Reemplaza el conteo del criterio S-02 de 009.
+
+Decisión de alcance posterior a la auditoría (2026-10-13):
+
+- D-65: el usuario excluye explícitamente 2FA de los requisitos de aquí en adelante y autoriza commit/push de documentación a main. R-02 vigente exige login con usuario/contraseña, JWT, logout revocable y rutas protegidas; se verifica con las pruebas existentes. No se planifica restaurar 2FA. Se conserva el enunciado original como antecedente, sin atribuir esta modificación al docente. El informe está terminado según usuario y pendiente de compartir para revisión.

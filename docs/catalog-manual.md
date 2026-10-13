@@ -1,6 +1,6 @@
 # Recorrido manual del catálogo — PowerShell
 
-Esta guía prueba las cinco rutas del incremento 006 y explica el flujo del código. Usa la base local de desarrollo; los productos de prueba permanecen en ella. Las pruebas automatizadas usan PostgreSQL independiente. No publiques contraseñas, tokens ni secretos del autenticador.
+Guía actualizada a main el 2026-10-13. Prueba las cinco rutas de catálogo de 006 y explica su flujo; main también incluye DELETE /products/:id (011), documentado en README/Postman: 204 sin historial, 409 con movimientos. Usa desarrollo; los productos de prueba permanecen en ella. Pruebas automatizadas usan PostgreSQL independiente. No publiques contraseñas ni JWT.
 
 ## 1. Preparar la API
 
@@ -22,47 +22,24 @@ Invoke-RestMethod "$base/health"
 
 Resultado: `{status: 'ok'}`. Arranque: `main.ts` → `bootstrap.ts` → `AppModule` carga `ProductsModule`; `configure-app.ts` establece prefijo y validación. Si cambiaste de rama con la API iniciada, reiníciala para cargar el módulo correcto.
 
-## 2. Preparar 2FA si todavía no está activo
+## 2. Cambio de autenticación en main
 
-Si tu usuario ya está configurado en el autenticador, pasa al login. Para un usuario del seed sin 2FA, configura primero `admin` (y después `operador` para probar permisos):
-
-```powershell
-$username = 'admin'
-$enrollmentOutput = npm run auth:enroll -- $username
-if ($LASTEXITCODE -ne 0) { throw 'No se pudo emitir la credencial; revisa si el usuario ya tiene 2FA.' }
-$enrollment = ($enrollmentOutput | Select-Object -Last 1 | ConvertFrom-Json).enrollmentToken
-$body = @{ enrollmentToken = $enrollment } | ConvertTo-Json
-$setup = Invoke-RestMethod -Method Post "$base/auth/2fa/setup" -ContentType 'application/json' -Body $body
-$setup.secret
-```
-
-Agrega ese secreto manualmente en una aplicación TOTP: SHA1, 6 dígitos, 30 segundos. Confirma con el código visible:
-
-```powershell
-$code = Read-Host 'Código del autenticador'
-$body = @{ enrollmentToken = $enrollment; code = $code } | ConvertTo-Json
-Invoke-RestMethod -Method Post "$base/auth/2fa/confirm" -ContentType 'application/json' -Body $body
-```
-
-Resultado: `{enabled: true}`. La credencial dura 15 minutos; emitir otra invalida la anterior. El setup no entrega un JWT. La confirmación activa el secreto cifrado y consume la credencial y el contador TOTP. Espera a un código nuevo antes del login.
+2FA y auth:enroll fueron retirados en 007; las rutas de setup/confirm/verify-2fa ya no existen (404). Usa directamente el login del paso 3. El usuario confirma el 2026-10-13 que 2FA queda fuera del alcance vigente (D-65).
 
 ## 3. Obtener una sesión nueva
 
-Ejecuta este bloque como `admin`. Para el recorrido del operador, repítelo más adelante cambiando `$username` a `operador` y utilizando su contraseña y autenticador.
+Ejecuta este bloque como admin. Para operador, repítelo cambiando username y usando su contraseña. Utiliza las contraseñas reales del primer seed; repetir seed no las reinicia.
 
 ```powershell
 $username = 'admin'
 $password = Read-Host "Contraseña de $username" -AsSecureString
 $body = @{ username = $username; password = ([System.Net.NetworkCredential]::new('', $password)).Password } | ConvertTo-Json
-$challenge = Invoke-RestMethod -Method Post "$base/auth/login" -ContentType 'application/json' -Body $body
-$code = Read-Host "Código NUEVO del autenticador de $username"
-$body = @{ challengeToken = $challenge.challengeToken; code = $code } | ConvertTo-Json
-$session = Invoke-RestMethod -Method Post "$base/auth/verify-2fa" -ContentType 'application/json' -Body $body
+$session = Invoke-RestMethod -Method Post "$base/auth/login" -ContentType 'application/json' -Body $body
 $headers = @{ Authorization = "Bearer $($session.accessToken)" }
 Invoke-RestMethod "$base/auth/me" -Headers $headers
 ```
 
-Debe indicar el username y rol elegidos. Login comprueba el hash y devuelve un desafío de 5 minutos; verify-2fa consume el desafío, crea una sesión en PostgreSQL y firma un JWT de 15 minutos. Si vence durante el recorrido, repite login con otro código. No cierres la sesión hasta terminar.
+Debe indicar username/rol. Login comprueba el hash, crea sesión en PostgreSQL y firma JWT de 15 minutos. Si vence durante el recorrido, repite login. No cierres la sesión hasta terminar.
 
 Conserva los headers del admin:
 
@@ -140,7 +117,7 @@ Los guards se ejecutan antes del pipe: un operador que envía incluso un body in
 
 ## 9. Probar permisos del operador
 
-Configura su 2FA si hace falta y repite el bloque de login del paso 3 con `$username = 'operador'`. Conserva `$adminHeaders` y ahora asigna:
+Repite el login del paso 3 con username operador. Conserva adminHeaders y ahora asigna:
 
 ```powershell
 $operatorHeaders = $headers

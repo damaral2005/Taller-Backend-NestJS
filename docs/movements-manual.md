@@ -1,6 +1,6 @@
 # Recorrido manual — entradas, salidas e historial
 
-Usa la rama `codex/feature-movements`, que parte del catálogo verificado. Este recorrido crea un producto propio y movimientos reales en desarrollo. No cambies claves de `.env` ni vuelvas a enrolar cuentas que ya tienen 2FA activo. La API necesita reiniciarse después de cambiar de rama para cargar `MovementsModule`.
+Guía actualizada a main el 2026-10-13; movimientos integrados y renumerados como 008. Crea un producto propio y movimientos reales en desarrollo. Conserva claves de .env; la autenticación actual es JWT-only (2FA retirado). Reinicia la API al cambiar de versión y aplica las migraciones pendientes según README; esta auditoría no aplica migraciones a desarrollo.
 
 ## 1. Preparar API y sesión
 
@@ -11,7 +11,7 @@ npm run db:up
 npm run start:dev
 ```
 
-No hay migración nueva en este incremento. Para una instalación desde cero aplica migraciones/seed según README. En otra terminal, usa un login JWT/2FA vigente como admin, siguiendo el paso 3 de [la guía de catálogo](catalog-manual.md). Conserva `$headers` del login:
+Movimientos no añade migración, pero main incluye la migración de retiro de 2FA (007). Para instalación/actualización aplica migraciones y seed según README. En otra terminal, usa un login JWT vigente como admin, siguiendo el paso 3 de [la guía de catálogo](catalog-manual.md). Conserva headers del login:
 
 ```powershell
 $base = 'http://localhost:3000/api/v1'
@@ -19,7 +19,7 @@ $adminHeaders = $headers
 Invoke-RestMethod "$base/auth/me" -Headers $adminHeaders
 ```
 
-Debe indicar `admin`. Si recibes 401, renueva el login con un código TOTP nuevo; las sesiones duran 15 minutos. No compartas JWT, contraseñas o secretos.
+Debe indicar admin. Si recibes 401, renueva login con usuario/contraseña; las sesiones duran 15 minutos. No compartas JWT o contraseñas.
 
 ## 2. Crear un producto independiente
 
@@ -125,4 +125,4 @@ POST no es idempotente: repetir una petición válida registra otro movimiento. 
 
 - [Controller](../src/movements/movements.controller.ts), [DTOs](../src/movements/movements.dto.ts), [servicio](../src/movements/movements.service.ts), [proyección](../src/movements/movement.view.ts).
 - [Entidad](../src/movements/entities/stock-movement.entity.ts), [unidades](../test/unit/movements-contract.spec.ts), [integración](../test/database/movements.e2e-spec.ts).
-- [Especificación](../specs/007-movements/spec.md), [plan](../specs/007-movements/plan.md), [tareas](../specs/007-movements/tasks.md) y [overview](commits/007.md).
+- [Especificación](../specs/008-movements/spec.md), [plan](../specs/008-movements/plan.md), [tareas](../specs/008-movements/tasks.md) y [overview](commits/008.md).

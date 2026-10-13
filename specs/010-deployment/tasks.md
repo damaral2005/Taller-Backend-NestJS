@@ -22,13 +22,13 @@ Una marca completada corresponde a trabajo verificado, no a comportamiento previ
 
 ## Publicación y evidencia
 
-- [ ] DP-T10: commit con identidad real y push de `feat-despliegue`; run de la rama con `verify` en verde y sin `deploy` (DP-02).
-- [ ] DP-T11: pull request revisado y merge a `main`; run `verify → deploy → smoke` exitoso (DP-01, DP-04).
+- [x] DP-T10: feat-despliegue publicado (6a1fe79 y cambios de workflow); integrado en main. Workflow solo despliega en push a main; comprobar run específico de rama si se solicita esa evidencia adicional.
+- [x] DP-T11: merge de PR #4 en 2ae38ac; verify/deploy/smoke success en run 38324403873 del main 635e928, comprobado el 2026-10-13. Logs privados de migraciones pre-deploy no inspeccionados en esta auditoría.
 - [ ] DP-T12: seed manual ejecutado una vez con contraseñas de producción propias, sin registrarlas.
-- [ ] DP-T13: recorrido en producción (login, `401`, `403`, catálogo, movimiento) y persistencia tras un redeploy (DP-05, DP-06).
+- [ ] DP-T13: usuario confirma Postman exitoso en producción; health/readiness/docs 200 y products sin token 401 comprobados directamente. Falta adjuntar evidencia específica de persistencia tras redeploy (DP-06).
 - [ ] DP-T14: evidencia de que un `verify` fallido no despliega (DP-03).
 
 ## Cierre
 
-- [ ] DP-T15: README (URL de API y Swagger, sección de despliegue), trazabilidad R-08, decisiones y `docs/commits/010.md` actualizados con URL, run, fecha y límites.
+- [x] DP-T15: cierre documental del 2026-10-13 con URL, run 38324403873, README/trazabilidad y docs/commits/010.md actualizados; evidencia directa y reportada separadas.
 - [ ] DP-T16: presentar overview y revisión del grupo antes del informe final.

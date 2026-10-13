@@ -1,6 +1,6 @@
 # Especificación 007 — autenticación solo con JWT (retiro del 2FA)
 
-Fecha: 2026-10-10. Estado: implementado y verificado localmente; decisiones D-A a D-D aprobadas (recomendadas). Falta que el grupo contraste R-02 con el enunciado oficial, registre el commit con identidad real, publique y verifique el CI. Es una corrección de alcance: el segundo factor (TOTP) no formaba parte de lo que se debía construir. Reemplaza parcialmente las especificaciones [004](../004-authentication/spec.md) y [005](../005-users/spec.md); esos documentos se conservan como historia y se marcan como reemplazados en este incremento.
+Fecha: implementación 2026-10-10; auditoría documental 2026-10-13. Estado: implementado/publicado e integrado en main (`cc5eee2`, `725d69a`, `2a86b32`). Decisiones D-A a D-D aprobadas por el grupo. El usuario ratifica el 2026-10-13 que 2FA queda fuera del alcance de aquí en adelante (D-65); R-02 vigente se verifica con JWT-only. Reemplaza parcialmente las especificaciones [004](../004-authentication/spec.md) y [005](../005-users/spec.md); esos documentos se conservan como historia.
 
 ## Motivo y alcance
 
@@ -8,7 +8,7 @@ El grupo implementó login con contraseña + TOTP (incrementos 004 y 005). Se de
 
 Este incremento **retira** enrolamiento, setup/confirmación TOTP, desafío de segundo factor, cifrado de secretos TOTP, el script `auth:enroll` y la regla de «último admin con 2FA activo». **No añade** funcionalidades nuevas: no hay refresh tokens, cambio ni recuperación de contraseña, ni registro público.
 
-El grupo debe contrastar con el enunciado oficial del profesor la redacción de R-02 («Autenticación JWT y 2FA» en la trazabilidad de la 001) para ajustarla a lo que realmente se pide.
+El enunciado original incluía JWT y 2FA. La instrucción posterior del usuario el 2026-10-13 excluye 2FA del seguimiento y fija el alcance JWT-only. La auditoría documenta ese cambio y verifica la implementación existente; no se atribuye esta decisión al docente ni se modifica código.
 
 ## Decisiones (aprobadas)
 

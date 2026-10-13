@@ -1,6 +1,6 @@
 # Tareas 007 — autenticación solo con JWT
 
-- [x] J-T01: decisiones D-A a D-D aprobadas (opciones recomendadas); contrastar R-02 con el enunciado oficial sigue pendiente del grupo.
+- [x] J-T01: decisiones D-A a D-D aprobadas por el grupo; el usuario ratifica JWT-only y excluye 2FA del alcance vigente el 2026-10-13 (D-65).
 - [x] J-T02: decisiones D-37 en adelante registradas; 001, 004 y 005 actualizadas o marcadas como reemplazadas.
 - [x] J-T03: migración nueva y entidades sin estructura TOTP; verificada sobre una BD con datos del esquema anterior.
 - [x] J-T04: login directo con sesión y JWT; rutas 2FA retiradas (404); sin cifrado ni `otpauth`.

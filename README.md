@@ -6,7 +6,9 @@ Repositorio: [Taller-Backend-NestJS](https://github.com/damaral2005/Taller-Backe
 
 ## Estado actual
 
-Los commits 1 y 2 establecen el SDD y la base NestJS. El commit 3 incorpora PostgreSQL y seed; el 4 añade JWT y sesiones revocables (su segundo factor TOTP se retira en el incremento 7). El incremento 5 implementa administración de usuarios y roles con protección del último admin. El incremento 6 añade el catálogo de productos con existencias de solo lectura. El incremento 7 corrige el alcance: la autenticación queda solo con usuario y contraseña que producen un JWT. Sus verificaciones y estado de cierre se registran en cada overview. El incremento 8 añade los movimientos, el 9 Swagger y el 10 el despliegue. El incremento 11 completa el CRUD: eliminar productos sin movimientos, consultar, editar y eliminar usuarios, y una comprobación de readiness. **El informe y el primer despliegue siguen pendientes.**
+Main actualizado/verificado a `635e928` el 2026-10-13. Incluye seed/PostgreSQL, JWT con sesiones revocables, roles, catálogo, movimientos, Swagger, despliegue Railway y CRUD completo/readiness. La colección Postman está versionada; el usuario confirma corridas exitosas locales y desplegadas. El informe está terminado según el usuario, pendiente de compartir para revisión documental.
+
+**Alcance acordado (2026-10-13):** el usuario excluye 2FA de los requisitos de aquí en adelante. La autenticación vigente es usuario/contraseña → JWT, con sesiones persistidas y logout revocable. El enunciado original incluía 2FA; se conserva como antecedente, mientras que el SDD y el seguimiento actual usan el alcance JWT-only aprobado (D-65).
 
 El código incluye 19 operaciones: dos de health, tres de autenticación, seis de usuarios, seis de catálogo y dos de movimientos.
 
@@ -35,6 +37,8 @@ La carpeta `2026-2-nestjs-postgres` se utiliza como referencia del curso. El des
 - [Overview y verificaciones del incremento 9](docs/commits/009.md).
 - [Especificación del CRUD completo y readiness](specs/011-crud-completion/spec.md), [plan](specs/011-crud-completion/plan.md) y [tareas](specs/011-crud-completion/tasks.md).
 - [Overview y verificaciones del incremento 11](docs/commits/011.md).
+- [Especificación de despliegue](specs/010-deployment/spec.md), [tareas](specs/010-deployment/tasks.md) y [cierre con URL/CI](docs/commits/010.md).
+- [Auditoría de main, pruebas y rúbrica del 2026-10-13](docs/audits/2026-10-13-main.md).
 - [Guía para colaborar con Spec-Driven Design](docs/CONTRIBUTING.md).
 
 ## Flujo de trabajo por commit
@@ -62,7 +66,7 @@ Los cambios de alcance se registran; una tarea pendiente no se presenta como com
 | 9      | Documentación OpenAPI con Swagger UI                               | Ver resultados y estado en el [overview](docs/commits/009.md) |
 | 11     | CRUD completo de productos y usuarios, readiness y colección       | Ver resultados y estado en el [overview](docs/commits/011.md) |
 
-El informe y la evidencia del primer despliegue se completan en incrementos posteriores. Estos incrementos no completan la entrega.
+El despliegue ya está verificado. Quedan revisar el informe final cuando se comparta y confirmar la entrega en Intu. Swagger complementa el informe, pero no lo sustituye.
 
 ## Requisitos y ejecución
 
@@ -301,11 +305,11 @@ La base de pruebas por defecto es `inventory_test`, con usuario `inventory_test`
 
 Las pruebas ignoran `.env` y no heredan `DB_*` de desarrollo. Para otro servidor se definen `TEST_DB_HOST`, `TEST_DB_PORT`, `TEST_DB_NAME`, `TEST_DB_USERNAME` y `TEST_DB_PASSWORD` en el proceso. `TEST_DB_NAME` debe terminar en `_test`. Por ejemplo, en PowerShell: `$env:TEST_DB_PORT = '5435'`; en Bash: `export TEST_DB_PORT=5435`. Usa esos mismos valores al levantar el servicio y al ejecutar las pruebas.
 
-La cobertura incluye todos los archivos de `src` salvo tests y se exige en líneas, sentencias, funciones y ramas. El reporte se escribe en `coverage/`; se puede consultar `coverage/lcov-report/index.html` y `coverage/coverage-summary.json`. Los resultados medidos de este incremento se registran en su overview y no representan todavía cobertura del dominio completo.
+La cobertura incluye todos los archivos de src salvo tests y se exige en líneas, sentencias, funciones y ramas. El reporte se escribe en coverage/; se puede consultar coverage/lcov-report/index.html y coverage/coverage-summary.json. La auditoría de main del 2026-10-13 incluye las 55 fuentes actuales; los tests verifican el contrato JWT-only del alcance acordado.
 
 Las pruebas HTTP cierran sus servidores al terminar y usan puertos efímeros para verificar el listener. El controlador de validación existe únicamente en `test/` y no se distribuye con la API.
 
-Los scripts habilitan las VM de módulos de Node para cargar las dependencias ESM de NestJS 12 y desactivan Watchman por CLI. Haste sigue los enlaces para incluir también los archivos que OneDrive anuncia como reparse points; no es necesario añadir flags manualmente. En el incremento 6 pasan **341 pruebas en 15 suites**, con **98,88% de cobertura de líneas** y las cuatro métricas por encima del 80%. El [overview](docs/commits/006.md) registra resultados y límites.
+Los scripts habilitan las VM de módulos de Node para cargar las dependencias ESM de NestJS 12 y desactivan Watchman por CLI. Haste sigue los enlaces para archivos sincronizados por OneDrive; no hacen falta flags adicionales. Main 635e928 auditada el 2026-10-13: **554 pruebas en 22 suites**, **99,05% de cobertura de líneas** y las cuatro métricas por encima de 80% sobre 55 fuentes. Colección repetida con Newman en API/base descartables: **265 peticiones y 619 aserciones sin fallos**. Evidencia y límites en [la auditoría](docs/audits/2026-10-13-main.md).
 
 ## Integración continua
 
@@ -322,7 +326,11 @@ La API se despliega en Railway con PostgreSQL gestionado; el diseño completo es
 | En Railway            | Build `npm run build`, migraciones como pre-deploy, arranque `npm run start:prod`, healthcheck |
 | Seed                  | Manual y una sola vez, con contraseñas de producción propias; el pipeline nunca lo ejecuta     |
 
-En GitHub se requieren el secreto `RAILWAY_TOKEN` (project token del entorno `production`) y las variables `RAILWAY_SERVICE` y `API_URL`. Ningún secreto de la API ni de la base vive en el repositorio. URL pública: pendiente del primer despliegue.
+En GitHub se requieren el secreto `RAILWAY_TOKEN` (project token del entorno `production`) y las variables `RAILWAY_SERVICE` y `API_URL`. Ningún secreto de la API ni de la base vive en el repositorio.
+
+- API pública: [api-production-5341.up.railway.app](https://api-production-5341.up.railway.app).
+- [Swagger](https://api-production-5341.up.railway.app/api/v1/docs) y [OpenAPI JSON](https://api-production-5341.up.railway.app/api/v1/docs-json).
+- [CI/deploy/smoke de main `635e928`](https://github.com/damaral2005/Taller-Backend-NestJS/actions/runs/38324403873): verify y deploy exitosos. Comprobación pública del 2026-10-13: health/readiness/docs 200, products sin JWT 401 y 19 operaciones documentadas.
 
 ## Estructura actual
 
@@ -352,6 +360,6 @@ docs/                     # Decisiones y overview por commit
 
 Cada incremento nuevo empieza por su propia especificación antes del código. Consulta la [guía del grupo](docs/CONTRIBUTING.md) para preparar tu incremento.
 
-## Entrega final pendiente
+## Cierre de entrega
 
-La entrega deberá incluir código fuente, pruebas Jest y Supertest con cobertura mínima del 80%, colección y entorno Postman sin secretos, instrucciones completas, informe de endpoints y arquitectura, pipeline de pruebas y despliegue automatizado, URL del repositorio y URL de la API desplegada. El informe debe adjuntarse a la tarea de Intu.
+Código, README, colección Postman autocontenida, pruebas/CI, API y Swagger desplegados están disponibles. El usuario confirma informe terminado y pruebas Postman exitosas en localhost y producción; el archivo/enlace del informe se compartirá después para revisión. Confirmar que incluye endpoints, parámetros, respuestas, arquitectura, resultados de pruebas y ambas URLs, y adjuntarlo en Intu. Mantener la API accesible durante la evaluación. Ver auditoría para evidencia y límites.

@@ -1,15 +1,15 @@
 # Plan 001 — implementación incremental
 
-Fecha: actualización 2026-10-08. Estado: incrementos 001 a 006 publicados/verificados, CI de catálogo exitoso y recorrido manual confirmado por usuario. Incremento 007 autorizado con commit/push en codex/feature-movements desde 815c649; integrar catálogo antes o junto con movimientos.
+Fecha: auditoría 2026-10-13. Estado: incrementos hasta 011 integrados en main 635e928 y desplegados; suite y colección repetidas sin fallos. Informe terminado según usuario, pendiente de revisión. El usuario confirma JWT-only y excluye 2FA del alcance vigente (D-65); esta auditoría solo modifica documentación.
 
-## Arquitectura prevista
+## Arquitectura actual
 
 - API modular NestJS en TypeScript: `health`, `auth`, `users`, `products`, `movements` y `database`.
 - PostgreSQL con TypeORM y migraciones versionadas; `synchronize` desactivado. Las versiones compatibles se verificarán al crear el proyecto y se fijarán con lockfile.
 - Configuración validada al arranque, `.env.example` sin secretos, prefijo `/api/v1` y validación de DTOs que rechace campos no permitidos.
-- Entidades previstas: `User`, `Session`, `TwoFactorChallenge`, `EnrollmentToken`, `Product` y `StockMovement`. Nombres y columnas se concretan en el diseño de cada incremento.
+- Entidades vigentes: User, Session, Product y StockMovement; enrolamiento/desafío y columnas TOTP retirados en 007.
 - FKs y constraints protegen integridad. Producto y movimiento se actualizan en una transacción con bloqueo de la fila del producto para prevenir saldo negativo concurrente.
-- JWT de acceso asociado a una sesión persistida y TOTP como segundo factor. Guards verifican sesión y rol vigente; claves externas protegen secretos.
+- JWT asociado a sesión persistida; guards verifican sesión y rol vigente. 2FA está fuera del alcance aprobado por el usuario el 2026-10-13.
 - Seed mediante script, sin endpoint público de carga. Emplea claves únicas y una transacción; no borra tablas ni altera usuarios existentes.
 - Jest para unidades; Supertest con la aplicación NestJS para HTTP. Integración de persistencia contra PostgreSQL aislado, sin sustituirlo por SQLite.
 
@@ -98,19 +98,23 @@ Especificación previa al código en `specs/008-movements`: POST/GET de movimien
 
 Mensaje: `feat: add OpenAPI documentation with Swagger UI`. Contratos y decisiones en `specs/009-swagger` antes del código. `@nestjs/swagger` publica Swagger UI en `/api/v1/docs` y el JSON en `/api/v1/docs-json`, con decoradores explícitos y esquemas de respuesta. No cambia contratos ni esquema. Resultados en `docs/commits/009.md`.
 
-## Incrementos posteriores
+## Incrementos 010 y 011 — integrados
 
-| Incremento   | Alcance y evidencias                                                                                                                  |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Recuperación | Probar y corregir cambios hechos al eliminar el 2FA.                                                                                  |
-| Entrega      | Postman, informe, README completo, cobertura final y trazabilidad de todos los criterios.                                             |
-| Despliegue   | Elegir proveedor, crear configuración reproducible, aplicar migraciones, completar pipeline automatizado y registrar URLs/evidencias. |
+Railway y pipeline verify/deploy/smoke publicados e integrados; main 635e928 tiene run 38324403873 exitoso. CRUD completo/readiness y colección Postman están en main. Auditoría 2026-10-13: 554 pruebas/22 suites, cobertura >=80% sobre 55 fuentes y colección repetida sin fallos. Informe terminado según usuario, pendiente de compartir para revisión. No se cambian funcionalidades en esta auditoría.
+
+## Cierre y mantenimiento pendientes
+
+| Incremento    | Alcance y evidencias                                                                                                                     |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Autenticación | R-02 verificado para el alcance JWT-only aprobado; 2FA excluido por el usuario (D-65), sin tareas de restauración.                       |
+| Entrega       | Revisar informe cuando se comparta y confirmar adjunto en Intu, URLs y participación del grupo. Postman/README/pruebas ya disponibles.   |
+| Operación     | Mantener URL Railway activa durante evaluación y adjuntar evidencia privada adicional de seed/persistencia tras redeploy si se solicita. |
 
 Cada incremento necesita especificación, plan y tareas antes del código y un overview al cerrarse. No se presume que los tres primeros commits satisfagan toda la rúbrica.
 
 ## Riesgos y comprobaciones
 
-- El ejemplo no se toma como una solución completa: su login aún no emite JWT ni implementa 2FA y su seed elimina estudiantes antes de cargarlos. Adoptar esos comportamientos impediría cumplir los criterios propios.
+- El ejemplo no se toma como una solución completa: su login aún no emite JWT y su seed elimina estudiantes antes de cargarlos. Adoptar esos comportamientos impediría cumplir los criterios propios.
 - Las credenciales se suministran por entorno; nunca se versionan claves ni passwords reales en fixtures, Postman o informe.
 - La BD de integración debe estar separada de desarrollo y producción. Los comandos de limpieza de pruebas deben rechazar una configuración que no identifique explícitamente la BD de pruebas.
 - Los tests no ocultan módulos sin cobertura. El informe registra comandos, entorno, fecha y valores reales de cobertura.

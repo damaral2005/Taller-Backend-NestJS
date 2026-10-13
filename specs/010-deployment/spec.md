@@ -1,6 +1,6 @@
 # Especificación 010 — despliegue en nube y pipeline automatizado
 
-Fecha: 2026-10-12. Estado: especificado antes del código; **decisiones D-51 a D-58 aprobadas** por el usuario el 2026-10-12 (despliegue solo desde `main` vía GitHub Actions). Código, workflow y pruebas implementados y verificados localmente; falta la configuración en Railway/GitHub y el primer despliegue. Rama `feat-despliegue`, creada desde `21dd53a` (merge de Swagger en main). Cubre R-08 (15%) de la [especificación general](../001-inventory/spec.md).
+Fecha: diseño 2026-10-12; auditoría 2026-10-13. Estado: implementado/integrado en main por PR #4 (`2ae38ac`); último main `635e928` con verify/deploy/smoke exitosos en run 38324403873. API y Swagger públicos verificados; [cierre 010](../../docs/commits/010.md). Decisiones D-51 a D-58 aprobadas por usuario; despliegue solo desde main. Rama original feat-despliegue desde 21dd53a. Cubre R-08 (15%); tareas de evidencia privada y persistencia tras redeploy permanecen separadas del despliegue comprobado.
 
 ## Alcance
 
