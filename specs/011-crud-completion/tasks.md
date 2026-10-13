@@ -18,4 +18,4 @@ Fecha: 2026-10-12. Una tarea se marca solo con evidencia verificable; los result
 - [x] C11-13: colección Postman — carpeta 07 con usuario `qa_del_*` en vez de `qaUserId`, sin `[PENDIENTE]`, y URL de Swagger corregida. La carpeta `postman/` queda lista para versionar; entra al repositorio con el commit (C11-16).
 - [x] C11-14: `format:check`, `lint`, `typecheck` y `build` pasan; `test:cov` con 554 pruebas en 22 suites y cobertura de 98,69% / 95,52% / 99,26% / 99,05% (CA-17); colección completa con Postman CLI: 619 aserciones sin fallos.
 - [x] C11-15: spec 001 (contratos, RN-08 a RN-11 y R-06), tasks 001, notas de reemplazo en 006/007/009, README y `docs/commits/011.md`.
-- [ ] C11-16: commit sin `package-lock.json`, push, CI y revisión del overview con el grupo.
+- [x] C11-16: commit sin `package-lock.json`, push, CI y revisión del overview con el grupo.
